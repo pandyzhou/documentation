@@ -1,7 +1,7 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "Meilisearch Documentation",
+  "name": "Meilisearch 中文文档",
   "logo": {
     "dark": "/assets/repo/meilisearch-logo-dark.svg",
     "light": "/assets/repo/meilisearch-logo-light.svg"
@@ -39,12 +39,12 @@
   "navbar": {
     "primary": {
       "type": "button",
-      "label": "Start a trial",
+      "label": "开始试用",
       "href": "https://cloud.meilisearch.com"
     },
     "links": [
       {
-        "label": "Website",
+        "label": "官方网站",
         "href": "https://www.meilisearch.com"
       },
       {
@@ -66,92 +66,92 @@
     },
     "links": [
       {
-        "header": "Product",
+        "header": "产品",
         "items": [
           {
             "label": "Meilisearch Cloud",
             "href": "https://www.meilisearch.com/cloud"
           },
           {
-            "label": "AI search",
+            "label": "AI 搜索",
             "href": "https://www.meilisearch.com/solutions/hybrid-search"
           },
           {
-            "label": "Pricing",
+            "label": "定价方案",
             "href": "https://www.meilisearch.com/pricing"
           },
           {
-            "label": "Documentation",
+            "label": "产品文档",
             "href": "https://www.meilisearch.com/docs"
           },
           {
-            "label": "Roadmap",
+            "label": "开发路线图",
             "href": "https://roadmap.meilisearch.com"
           },
           {
-            "label": "Release notes",
+            "label": "更新日志",
             "href": "https://updates.cloud.meilisearch.com/"
           },
           {
-            "label": "Comparisons",
+            "label": "竞品对比",
             "href": "https://www.meilisearch.com/docs/resources/comparisons/alternatives"
           },
           {
-            "label": "Trust center",
+            "label": "安全与信任中心",
             "href": "https://trust.meilisearch.com/"
           }
         ]
       },
       {
-        "header": "Contact us",
+        "header": "联系与社区",
         "items": [
           {
             "label": "GitHub",
             "href": "https://github.com/meilisearch"
           },
           {
-            "label": "Discord",
+            "label": "Discord 社区",
             "href": "https://discord.gg/meilisearch"
           },
           {
-            "label": "Newsletter",
+            "label": "订阅周刊",
             "href": "https://share-eu1.hsforms.com/1LN5N0x_GQgq7ss7tXmSykwfg3aq"
           },
           {
-            "label": "Helpdesk",
+            "label": "服务支持中心",
             "href": "https://help.meilisearch.com/"
           }
         ]
       },
       {
-        "header": "Company",
+        "header": "关于我们",
         "items": [
           {
-            "label": "Blog",
+            "label": "官方博客",
             "href": "https://meilisearch.com/blog"
           },
           {
-            "label": "Customers",
+            "label": "客户案例",
             "href": "https://www.meilisearch.com/customers"
           },
           {
-            "label": "Careers",
+            "label": "加入我们",
             "href": "https://www.meilisearch.com/careers"
           },
           {
-            "label": "Code of Conduct",
+            "label": "行为准则",
             "href": "https://github.com/meilisearch/MeiliSearch/blob/main/CODE_OF_CONDUCT.md"
           },
           {
-            "label": "Privacy Policy",
+            "label": "隐私政策",
             "href": "https://www.meilisearch.com/privacy-policy"
           },
           {
-            "label": "Terms of Use",
+            "label": "使用条款",
             "href": "https://www.meilisearch.com/terms-of-use"
           },
           {
-            "label": "Swag",
+            "label": "周边商城",
             "href": "https://swag.meilisearch.com/"
           }
         ]

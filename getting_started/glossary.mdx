@@ -1,229 +1,228 @@
 ---
-title: Glossary
-sidebarTitle: Glossary
-description: Definitions of key Meilisearch concepts and search terminology including full-text search, semantic search, hybrid search, and more.
+title: 专业术语表 (Glossary)
+sidebarTitle: 术语表
+description: Meilisearch 核心概念与搜索技术术语速查表，涵盖全文检索、语义搜索、混合搜索、分面、分片等权威定义。
 ---
 
-This glossary defines key terms used throughout the Meilisearch documentation, as well as common search and information retrieval concepts.
+本词汇表系统定义了 Meilisearch 官方文档中出现的关键概念，以及现代搜索引擎与信息检索领域的通用技术术语。
 
-## Meilisearch concepts
+## Meilisearch 核心概念
 
-### Index
+### 索引 (Index)
 
-A collection of documents with shared settings. An index is the equivalent of a table in a relational database. Each index has a unique identifier (`uid`) and its own configuration for ranking, filtering, and other settings. [Learn more about indexes](/resources/internals/indexes).
+共享相同配置与规则的一组文档集合。在概念上，**索引（Index）相当于关系型数据库中的一张数据表（Table）**。每个索引都有一个唯一的标识符（`uid`），并拥有针对该索引独立的排序规则、过滤器和分词配置。[深入了解索引原理 →](/resources/internals/indexes)
 
-### Document
+### 文档 (Document)
 
-A JSON object stored in an index. Documents are the basic unit of data in Meilisearch. Each document contains fields (key-value pairs) and must have a unique primary key. [Learn more about documents](/resources/internals/documents).
+存储在索引中的一个 JSON 对象。**文档（Document）是 Meilisearch 中的基本数据单元**（相当于数据库表中的一行记录）。每个文档包含若干字段（键值对），且必须拥有一个全局唯一的主键。[深入了解文档操作 →](/resources/internals/documents)
 
-### Primary key
+### 主键 (Primary key)
 
-A unique identifier for each document in an index. Meilisearch uses the primary key to distinguish between documents. If you add a document with an existing primary key, the existing document is replaced. [Learn more about primary keys](/resources/internals/primary_key).
+索引中用于唯一标识每篇文档的字段。Meilisearch 依靠主键来区分和定位文档。如果写入了一篇带有已有主键的文档，原文档将被全量替换。[深入了解主键规范 →](/resources/internals/primary_key)
 
-### Field
+### 字段 / 属性 (Field / Attribute)
 
-A key-value pair within a document. For example, `"title": "The Great Gatsby"` is a field where `title` is the attribute name and `"The Great Gatsby"` is the value. [Learn more about documents](/resources/internals/documents).
+文档内部的一个键值对（Key-Value）。例如，在 `"title": "了不起的盖茨比"` 中，`title` 是字段名（属性），而 `"了不起的盖茨比"` 是字段值。[深入了解字段类型 →](/resources/internals/documents)
 
-### API key
+### API 密钥 (API key)
 
-A token used to authenticate requests to a Meilisearch instance. Meilisearch uses three types of keys: a **master key** (used to create other keys), a **default admin API key** (full API access), and a **default search API key** (search-only access). [Learn more about API keys](/resources/self_hosting/security/basic_security).
+用于鉴权访问 Meilisearch 实例的访问令牌。Meilisearch 提供了三种开箱即用的密钥层级：
+- **Master Key（主密钥）**：用于生成和管理其他密钥；
+- **Default Admin API Key（默认管理员密钥）**：具备完整的增删改查管理权限；
+- **Default Search API Key（默认只读搜索密钥）**：仅具备检索权限，可安全放在前端客户端。[深入了解密钥管理 →](/resources/self_hosting/security/basic_security)
 
-### Master key
+### 主密钥 (Master key)
 
-A secret key set at launch that protects your Meilisearch instance. The master key is used to generate the default admin and search API keys. It should never be exposed to end users. [Learn more about security](/resources/self_hosting/security/basic_security).
+在 Meilisearch 启动时配置的最高权限核心密钥，用于保护整个实例安全。主密钥用于派生管理员与搜索密钥，严禁暴露给前端或未授权用户。[深入了解安全机制 →](/resources/self_hosting/security/basic_security)
 
-### Tenant token
+### 租户令牌 (Tenant token)
 
-A short-lived token generated from an API key that enforces search rules for multi-tenant applications. Tenant tokens allow you to restrict search results per user without creating separate indexes. [Learn more about tenant tokens](/capabilities/security/overview).
+一种由 API 密钥签发的短时临时签名令牌，专为多租户 SaaS 架构打造。租户令牌允许你在服务端强绑定搜索过滤规则（如只能查属于自己 `tenant_id` 的数据），**无需为每个租户单独建立物理索引**即可实现严格的行级数据隔离。[深入了解租户令牌 →](/capabilities/security/overview)
 
-### Task
+### 异步任务 (Task)
 
-An asynchronous operation returned by Meilisearch when processing write requests (adding documents, updating settings, etc.). Tasks have statuses like `enqueued`, `processing`, `succeeded`, or `failed`. [Learn more about tasks](/capabilities/indexing/tasks_and_batches/monitor_tasks).
+当向 Meilisearch 发送写操作请求（添加文档、修改设置、清空索引等）时，Meilisearch 返回的异步任务句柄。任务包含多种状态：`enqueued`（已排队）、`processing`（处理中）、`succeeded`（成功）或 `failed`（失败）。[深入了解任务监控 →](/capabilities/indexing/tasks_and_batches/monitor_tasks)
 
-### Batch
+### 批处理 (Batch)
 
-A group of tasks that Meilisearch processes together in a single operation. Meilisearch automatically groups compatible enqueued tasks into batches to improve indexing throughput. For example, multiple document addition tasks targeting the same index may be merged into one batch. [Learn more about batches](/capabilities/indexing/tasks_and_batches/async_operations#task-batches).
+Meilisearch 在后台一次性合并处理的一组任务。引擎会自动将队列中兼容的任务（如对同一索引的多次文档写入）聚合成一个 Batch 执行，从而极大提升系统吞吐量。[深入了解批处理机制 →](/capabilities/indexing/tasks_and_batches/async_operations#task-batches)
 
-### Ranking rules
+### 排序规则 (Ranking rules)
 
-An ordered list of criteria Meilisearch uses to sort search results by relevance. Default ranking rules include `words`, `typo`, `proximity`, `attribute`, `sort`, and `exactness`. [Learn more about ranking rules](/capabilities/full_text_search/relevancy/ranking_rules).
+Meilisearch 用来计算搜索结果相关度并对文档排序的有序规则管道。默认包含 6 大内置规则：`words`（词频）、`typo`（拼写容错）、`proximity`（词间距）、`attribute`（属性权重）、`sort`（自定义排序）和 `exactness`（精确匹配度）。[深入了解排序流水线 →](/capabilities/full_text_search/relevancy/ranking_rules)
 
-### Filterable attributes
+### 可过滤属性 (Filterable attributes)
 
-Document fields configured to support filtering. Only fields explicitly listed as filterable can be used in `filter` search parameters. [Learn more about filtering](/capabilities/filtering_sorting_faceting/getting_started).
+明确声明支持 Filter 筛选的文档字段。只有显式加入 `filterableAttributes` 的字段，才可以在搜索请求的 `filter` 参数中使用。[深入了解过滤配置 →](/capabilities/filtering_sorting_faceting/getting_started)
 
-### Sortable attributes
+### 可排序属性 (Sortable attributes)
 
-Document fields configured to support custom sorting. Only fields explicitly listed as sortable can be used in `sort` search parameters. [Learn more about sorting](/capabilities/filtering_sorting_faceting/how_to/sort_results).
+明确声明支持自定义排序的文档字段。只有显式加入 `sortableAttributes` 的字段，才可以在搜索请求的 `sort` 参数中使用。[深入了解排序配置 →](/capabilities/filtering_sorting_faceting/how_to/sort_results)
 
-### Searchable attributes
+### 可搜索属性 (Searchable attributes)
 
-Document fields that Meilisearch scans when performing a search query. By default, all fields are searchable. Restricting searchable attributes improves relevancy and performance. [Learn more about searchable attributes](/capabilities/full_text_search/how_to/configure_displayed_attributes).
+用户在搜索时，Meilisearch 会自动扫描匹配的文档字段。默认情况下文档的所有字段都是可搜索的。将其收窄为仅关键字段，可以显著提升检索精准度并降低索引体积。[深入了解可搜索属性 →](/capabilities/full_text_search/how_to/configure_displayed_attributes)
 
-### Displayed attributes
+### 展示属性 (Displayed attributes)
 
-Document fields returned in search results. By default, all fields are displayed. Restricting displayed attributes lets you hide internal fields from search responses. [Learn more about displayed attributes](/capabilities/full_text_search/how_to/configure_displayed_attributes).
+搜索结果中返回给前端的文档字段列表。默认展示全部字段。通过配置 `displayedAttributes`，你可以对搜索响应进行脱敏，隐藏内部私密字段。[深入了解展示属性 →](/capabilities/full_text_search/how_to/configure_displayed_attributes)
 
-### Distinct attribute
+### 结果去重属性 (Distinct attribute)
 
-A field used to deduplicate search results. When set, Meilisearch returns only one document per unique value of the distinct attribute. [Learn more about distinct attribute](/capabilities/full_text_search/how_to/configure_distinct_attribute).
+用于对搜索结果自动去重的指定字段。设置后，Meilisearch 在搜索结果中针对该字段的每个唯一值仅保留一条最相关的文档。[深入了解结果去重 →](/capabilities/full_text_search/how_to/configure_distinct_attribute)
 
-### Synonyms
+### 同义词 (Synonyms)
 
-Words or phrases configured to be treated as equivalent during search. For example, you can define `"phone"` and `"mobile"` as synonyms so a search for either term returns results containing both. [Learn more about synonyms](/capabilities/full_text_search/relevancy/synonyms).
+在搜索时被引擎视作完全等价的一组词语或短语。例如将 `"手机"` 与 `"移动电话"` 设为同义词，搜任意一个词都会同时召回包含这两个词的内容。[深入了解同义词配置 →](/capabilities/full_text_search/relevancy/synonyms)
 
-### Stop words
+### 停用词 (Stop words)
 
-Common words (such as "the", "a", "is") excluded from search queries to improve relevancy and performance. [API reference](/reference/api/settings/get-stopwords).
+在全文检索中被自动忽略的高频无意义词（如英语中的 "the", "a", "is" 等），排除它们有助于提升相关度打分与检索速度。[查看停用词 API →](/reference/api/settings/get-stopwords)
 
-### Typo tolerance
+### 错别字容错 (Typo tolerance)
 
-Meilisearch's built-in ability to return relevant results even when the search query contains typos. You can configure the number of allowed typos and disable typo tolerance for specific attributes or words. [Learn more about typo tolerance](/capabilities/full_text_search/relevancy/typo_tolerance_settings).
+Meilisearch 的标志性看家本领：即使用户在查询词中输入了错别字或手滑打错字母，引擎依然能智能识别并召回高度相关的文档。你可以自由设定允许的最大错字数量，或为特定字段关闭该特性。[深入了解拼写容错 →](/capabilities/full_text_search/relevancy/typo_tolerance_settings)
 
-### Pagination
+### 分页 (Pagination)
 
-The mechanism for retrieving search results in smaller chunks. Meilisearch supports **offset/limit pagination** (for navigating pages with numbered buttons) and **estimated total hits**, which provides approximate result counts. [Learn more about pagination](/capabilities/full_text_search/how_to/paginate_search_results).
+将庞大的搜索命中结果分批返回给前端的机制。Meilisearch 原生支持**基于偏移量/每页数量的分页（Offset/Limit）**以及高性能的**游标分页（Cursor）**，并返回估算总命中数（`estimatedTotalHits`）。[深入了解分页实战 →](/capabilities/full_text_search/how_to/paginate_search_results)
 
-### Facets
+### 分面 (Facets)
 
-Categorized counts of document attribute values returned alongside search results. Facets enable UI elements like filtering sidebars showing how many results exist for each category. [Learn more about facets](/capabilities/filtering_sorting_faceting/how_to/filter_with_facets).
+在返回搜索结果的同时，对各分类属性下的文档数量进行的实时多维统计。分面用于驱动电商常见的侧边筛选栏（如实时显示每个品牌、每个价格区间各有多少件匹配商品）。[深入了解分面筛选 →](/capabilities/filtering_sorting_faceting/how_to/filter_with_facets)
 
-### Geo search
+### 地理位置搜索 (Geo search)
 
-The ability to filter and sort search results based on geographic coordinates (`_geo` field). Geo search supports filtering by radius (`_geoRadius`) or bounding box (`_geoBoundingBox`), and sorting by distance using `_geoPoint`. [Learn more about geo search](/capabilities/geo_search/getting_started).
+基于地理坐标（`_geo` 字段）对结果进行空间过滤与距离排序的能力。支持半径圆形范围检索（`_geoRadius`）、矩形边界框检索（`_geoBoundingBox`），以及按与指定坐标的物理距离进行升降序排列。[深入了解地理搜索 →](/capabilities/geo_search/getting_started)
 
-### Multi-search
+### 多索引搜索 (Multi-search)
 
-A single API request that performs multiple search queries across one or more indexes. Multi-search reduces network overhead and latency compared to sending individual search requests. [Learn more about multi-search](/capabilities/multi_search/overview).
+单次 HTTP 请求中同时对一个或多个索引并发发起多组检索操作。相比连续发起多次单独请求，多索引搜索大幅降低了网络开销与客户端延迟。[深入了解多搜索 →](/capabilities/multi_search/overview)
 
-### Federated search
+### 联合搜索 (Federated search)
 
-A type of multi-search where results from multiple indexes are merged and ranked together into a single list, rather than returned as separate result sets. [Learn more about federated search](/capabilities/multi_search/getting_started/federated_search).
+多索引搜索的高级形态：将来自多个不同索引的搜索结果，按照相关度打分与权重**自动归并混排为一个统一的结果列表**，而不是分别返回独立的结果集。[深入了解联合搜索 →](/capabilities/multi_search/getting_started/federated_search)
 
-### Dump
+### 转储迁移文件 (Dump)
 
-A serialized export of your entire Meilisearch instance (documents, settings, API keys, and tasks). Dumps are portable across Meilisearch versions and can be used for migrations. [Learn more about dumps](/resources/self_hosting/data_backup/dumps).
+对整个 Meilisearch 实例（包含全量文档、索引设置、API 密钥与任务状态）的序列化导出文件。Dump 具有跨架构、跨版本的极佳便携性，是大版本迁移的首选方案。[深入了解 Dump 备份与迁移 →](/resources/self_hosting/data_backup/dumps)
 
-### Snapshot
+### 快照镜像 (Snapshot)
 
-A binary copy of your Meilisearch database at a specific point in time. Snapshots are faster to create and restore than dumps but are not portable across versions. [Learn more about snapshots](/resources/self_hosting/data_backup/snapshots).
+Meilisearch 数据库在特定时间点的完整二进制物理快照。生成和还原速度极快，用于单节点日常容灾与秒级重启恢复，但不具备跨大版本迁移能力。[深入了解 Snapshot →](/resources/self_hosting/data_backup/snapshots)
 
-### Embedder
+### 向量嵌入器 (Embedder)
 
-A model or service that generates vector representations (embeddings) of documents and queries for AI-powered search. Meilisearch supports built-in embedders (OpenAI, HuggingFace, Ollama) and custom REST embedders. [Learn more about embedders](/capabilities/hybrid_search/how_to/choose_an_embedder).
+为文档和查询词生成高维向量嵌入（Embeddings）的 AI 模型或远程服务。Meilisearch 内置了多种主流模型驱动（OpenAI、HuggingFace、Ollama 等）并支持通用 REST API。[深入了解嵌入器配置 →](/capabilities/hybrid_search/how_to/choose_an_embedder)
 
-### Auto-embeddings
+### 自动向量化 (Auto-embeddings)
 
-Meilisearch's ability to automatically generate vector embeddings from your documents without any external pipeline. When you configure an embedder, Meilisearch generates embeddings at indexing time and at query time, so you never need to manage vectors yourself. [Learn more about AI-powered search](/capabilities/hybrid_search/getting_started).
+Meilisearch 无需任何外部 Python 流水线即可全自动将文本转化为向量的能力。只需在配置中指定 Embedder，引擎在写入文档和处理用户搜索时会自动在后台完成向量计算与索引。[深入了解混合检索 →](/capabilities/hybrid_search/getting_started)
 
-### Document template
+### 文档模版 (Document template)
 
-A template that controls how document fields are combined into a single text string before being sent to an embedder for auto-embedding. Templates let you choose which fields matter for semantic search and how they are formatted. For example, a template like `"{{ doc.title }}: {{ doc.description }}"` tells Meilisearch to embed the title and description together. [Learn more about document templates](/capabilities/hybrid_search/advanced/document_template_best_practices).
+控制在将文档发送给向量嵌入器前，如何将多个字段组合格式化为一段文本的模版。例如模版 `"{{ doc.title }}: {{ doc.description }}"` 指导 Meilisearch 将标题与描述拼在一起生成向量。[深入了解文档模版最佳实践 →](/capabilities/hybrid_search/advanced/document_template_best_practices)
 
-## Search and information retrieval
+## 搜索与信息检索技术 (IR Concepts)
 
-### Full-text search
+### 全文检索 (Full-text search)
 
-A search technique that scans the entire content of indexed document fields to find matches for a query. Meilisearch's full-text search supports typo tolerance, prefix matching, and ranking by relevance. [Learn more about relevancy](/capabilities/full_text_search/relevancy/relevancy).
+扫描已索引字段中的所有文本内容，寻找与查询词相关匹配项的技术。Meilisearch 的全文检索结合了倒排索引、拼写容错、前缀匹配与多规则加权打分。[深入了解相关度 →](/capabilities/full_text_search/relevancy/relevancy)
 
-### Keyword search
+### 关键词搜索 (Keyword search)
 
-A search approach that matches documents based on the exact or near-exact presence of query terms. Traditional keyword search relies on term frequency and doesn't understand meaning. Meilisearch's full-text search is a form of keyword search enhanced with typo tolerance and ranking rules.
+根据查询词在文档中的字面精确或近似出现情况进行匹配的传统检索技术。Meilisearch 的全文搜索就是一种通过拼写容错和相关度规则大幅强化的现代化关键词搜索。
 
-### Semantic search
+### 语义搜索 (Semantic search)
 
-A search technique that understands the meaning and intent behind a query, not just the keywords. Semantic search uses vector embeddings to find documents that are conceptually similar to the query, even if they don't share the same words. [Learn more about AI-powered search](/capabilities/hybrid_search/getting_started).
+超越字面限制、能够深入理解查询词背后语境含义与意图的技术。语义搜索依赖向量嵌入，即使文档中没有出现用户输入的字面词汇，也能通过数学相似度召回相关内容。[深入了解语义搜索 →](/capabilities/hybrid_search/getting_started)
 
-### Hybrid search
+### 混合搜索 (Hybrid search)
 
-A search approach that combines full-text (keyword) search with semantic (vector) search. Meilisearch merges results from both techniques to provide results that are both keyword-accurate and semantically relevant. [Learn more about hybrid search](/capabilities/hybrid_search/getting_started).
+将传统全文（关键词）检索与语义（向量）检索无缝融为一体的现代化搜索方案。Meilisearch 自动将两者的优势打分结合，既保证了专业术语、人名词汇的字面绝对准确，又兼顾了口语自然语言的语义理解深度。[深入了解混合搜索 →](/capabilities/hybrid_search/getting_started)
 
-### Vector search
+### 向量检索 (Vector search)
 
-A search technique that represents documents and queries as high-dimensional vectors (embeddings) and finds matches based on mathematical similarity. Vector search powers semantic search in Meilisearch. [Learn more about AI-powered search](/capabilities/hybrid_search/getting_started).
+将文本或多模态内容表示为高维数学向量，并通过余弦距离或点积计算匹配度的检索技术。它是 Meilisearch 实现语义搜索的底层引擎。
 
-### Embeddings
+### 向量嵌入 (Embeddings)
 
-Numerical vector representations of text (or images) generated by machine learning models. Embeddings capture semantic meaning, allowing similar concepts to have similar vector representations. [Learn more about embedders](/capabilities/hybrid_search/how_to/choose_an_embedder).
+由机器学习模型生成的代表文本或图像语义的高维数值向量。语义相近的内容在向量空间中的空间距离极其接近。
 
-### Conversational search
+### 对话式搜索 (Conversational search)
 
-An AI-powered search experience where users interact with search results through natural language conversations. Meilisearch provides tooling for building conversational search interfaces using LLMs. [Learn more about conversational search](/capabilities/agentic_search/overview).
+用户通过自然语言连续多轮对话与搜索数据交互的 AI 体验。Meilisearch 提供了与大语言模型结合构建对话式界面的完整工具链。[深入了解对话搜索 →](/capabilities/agentic_search/overview)
 
-### RAG (Retrieval-Augmented Generation)
+### RAG (检索增强生成)
 
-A technique that combines search (retrieval) with AI text generation. Instead of relying solely on the AI model's training data, RAG first retrieves relevant documents from a search engine and uses them as context for generating responses. [Learn more about agentic search](/capabilities/agentic_search/overview).
+将搜索检索（Retrieval）与 AI 大模型文本生成（Generation）相结合的技术。RAG 先从搜索引擎中召回最相关的私有文档，再将这些文档作为准确的事实上下文提供给大模型生成回答，从根源上杜绝大模型胡说八道的“幻觉”。[深入了解 RAG 与智能体 →](/capabilities/agentic_search/overview)
 
-### Relevancy
+### 相关度 (Relevancy)
 
-How well search results match the user's intent. Meilisearch determines relevancy through ranking rules that consider factors like number of matching words, typo count, word proximity, and attribute importance. [Learn more about relevancy](/capabilities/full_text_search/relevancy/relevancy).
+搜索结果与用户真实检索意图的契合程度。Meilisearch 通过综合考量匹配字数、容错成本、词语间距及字段优先级等多维规则链来决定最终的相关度排序。[深入了解打分机制 →](/capabilities/full_text_search/relevancy/relevancy)
 
-### Tokenization
+### 分词 (Tokenization)
 
-The process of breaking text into individual units (tokens) for indexing. Meilisearch tokenizes text based on word boundaries, with special handling for languages like Chinese, Japanese, and Korean. [Learn more about tokenization](/capabilities/indexing/advanced/tokenization).
+将自然语言文本切分为一个个可建索的独立词元（Tokens）的过程。Meilisearch 底层分词器对中日韩（CJK）等无空格连续书写语言进行了专业的切词处理。[深入了解分词定制 →](/capabilities/indexing/advanced/tokenization)
 
-### Prefix search
+### 前缀匹配 (Prefix search)
 
-A search behavior where Meilisearch matches documents containing words that start with the query terms. For example, searching for "hel" matches "hello" and "help". By default, only the last word in a query uses prefix matching. [Learn more about prefix search](/resources/internals/prefix).
+匹配以查询词开头的单词的搜索行为。例如搜索 `"hel"` 会自动匹配 `"hello"` 和 `"help"`。默认情况下，查询语句中的最后一个词会自动启用前缀匹配。[深入了解前缀原理 →](/resources/internals/prefix)
 
-### Faceted search
+### 分面搜索 (Faceted search)
 
-A search interface pattern where users can refine results using categorized filters (facets). For example, an e-commerce site might let users filter by price range, brand, and color alongside their search query. [Learn more about faceted search](/capabilities/filtering_sorting_faceting/how_to/filter_with_facets).
+允许用户通过预设的多维度分类过滤器逐步细化筛选结果的搜索界面模式，广泛应用于电商平台与分类信息站点。
 
-### Geosearch
+### 地理搜索 (Geosearch)
 
-The ability to filter or sort search results based on geographic location. Users can find results within a specific radius or bounding box of a given point. [Learn more about geosearch](/capabilities/geo_search/getting_started).
+根据现实世界物理地理坐标对数据进行范围过滤与距离排序的能力。
 
-### Autocomplete
+### 自动补全 (Autocomplete)
 
-A search UI pattern that suggests results or query completions as the user types, typically powered by prefix search.
+用户在搜索框键入字符时，根据前缀实时弹出预测词或候选结果的前端交互体验。
 
-### Search-as-you-type
+### 打字即搜 (Search-as-you-type)
 
-An instant search experience where results update with every keystroke. Meilisearch is optimized for this pattern, with response times under 50ms.
+随着键盘敲击每一次按键实时无缝刷新搜索结果的极致即时搜索体验。Meilisearch 的亚 50ms 性能专为此场景深度优化。
 
-### Typo tolerance (search concept)
+### 多租户 (Multi-tenancy)
 
-The ability of a search engine to return relevant results despite misspellings in the query. Meilisearch calculates the edit distance (number of character changes) between query terms and indexed words. [Learn more about typo tolerance](/capabilities/full_text_search/relevancy/typo_tolerance_settings).
+单个 Meilisearch 实例同时为多个不同组织或用户服务，且每个租户仅能访问其自身私有数据的系统架构。Meilisearch 通过租户令牌实现轻量、安全的逻辑多租户隔离。
 
-### Multi-tenancy
+### 搜索分析 (Analytics)
 
-An architecture where a single Meilisearch instance serves multiple users or organizations, with each tenant seeing only their own data. Meilisearch supports multi-tenancy through tenant tokens and filtered search. [Learn more about multi-tenancy](/capabilities/security/overview).
+收集和分析用户的搜索行为（关键词频次、无结果率、点击率、转化率）的数据体系，用于持续反哺和优化搜索体验。
 
-### Analytics
+## 基础设施与规模化扩展
 
-Data collected about search behavior (queries, clicks, conversions) used to understand how users interact with search and improve results over time. Meilisearch Cloud provides built-in analytics dashboards. [Learn more about analytics](/capabilities/analytics/getting_started).
+### 分片 (Sharding)
 
-## Infrastructure and scaling
+将海量数据集水平拆分并分散存储在多个独立的 Meilisearch 实例上。查询请求通过多搜索并发打到所有分片并自动合并，突破单机物理硬件极限。[深入了解分片方案 →](/resources/self_hosting/deployment/overview)
 
-### Sharding
+### 主从复制 (Replication)
 
-Splitting a large dataset across multiple Meilisearch instances, each holding a subset of documents. Queries are sent to all shards in parallel using multi-search, and results are merged. Sharding allows horizontal scaling beyond what a single instance can handle. [Learn more about sharding](/resources/self_hosting/deployment/overview).
+维护多个相同数据的 Meilisearch 节点副本，将读取流量负载均衡分摊到各个从节点，极大提升高并发读取吞吐并保障高可用。
 
-### Replication
+### 联合架构 (Federation)
 
-Running multiple copies of the same Meilisearch instance so that read queries can be distributed across replicas. Replication improves availability and read throughput. If one replica goes down, others continue serving requests. [API reference](/reference/api/management/get-network-topology).
+将跨多个索引或物理机器的数据结果汇总为一个统一的加权排序列，支持本地联合与跨网络的远程集群联合。
 
-### Federation
+### 高可用 (High availability)
 
-Combining search results from multiple Meilisearch instances or indexes into a single ranked list. Federation can work locally (multiple indexes on one instance) or remotely (across multiple instances on a network). [Learn more about federation](/capabilities/multi_search/getting_started/federated_search).
+即使单个节点或物理硬件发生突发故障，整个搜索系统依然能持续对外正常提供服务的部署架构。
 
-### High availability
+### 水平扩展 (Horizontal scaling)
 
-A deployment configuration where your search infrastructure continues to operate even if individual instances fail. Achieved through replication, load balancing, and automatic failover.
+通过向集群中增加更多机器节点来提升容量与吞吐，与垂直升级（更换更贵更强的单台服务器）相对。
 
-### Horizontal scaling
+### 二进制量化 (Binary quantization)
 
-Adding more Meilisearch instances to handle larger datasets or higher query volumes, as opposed to vertical scaling (upgrading a single machine). Meilisearch supports horizontal scaling through sharding and replication. [Learn more about sharding](/resources/self_hosting/deployment/overview).
+将 32 位浮点数向量压缩为 1 位（1-bit）二进制表示的前沿压缩算法。能将大规模向量数据的内存占用直降 10 倍以上，显著加快运算性能。[查看嵌入器配置 →](/reference/api/settings/update-embedders)
 
-### Binary quantization
+### 内存映射 (Memory mapping)
 
-A compression technique that reduces vector embeddings to 1-bit representations. This dramatically reduces storage and improves search performance for large AI-powered search datasets, at the cost of some semantic precision. [API reference](/reference/api/settings/update-embedders).
-
-### Memory mapping
-
-A storage technique where Meilisearch maps database files directly into virtual memory, allowing the operating system to manage caching efficiently. This lets Meilisearch handle datasets larger than available RAM. [Learn more about storage](/resources/internals/storage).
+Meilisearch 底层存储直接将数据库文件映射进操作系统的虚拟内存地址空间，交由 OS 内核智能管理换页与缓存。这使得 Meilisearch 能够轻松处理远超物理内存容量的庞大数据集。
 
 ### DiskANN
 
-A disk-based approximate nearest neighbor algorithm used by Meilisearch for vector search. DiskANN enables fast similarity search on large vector datasets without requiring all vectors to fit in RAM.
+Meilisearch 向量搜索所采用的高性能磁盘近似最近邻图索引算法，允许系统在不将所有向量常驻内存的前提下，实现极速相似度匹配。

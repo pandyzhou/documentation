@@ -1,10 +1,10 @@
 {
   "tabs": [
     {
-      "tab": "Getting started",
+      "tab": "快速入门",
       "groups": [
         {
-          "group": "Introduction",
+          "group": "介绍",
           "pages": [
             "getting_started/overview",
             "getting_started/first_project",
@@ -14,7 +14,7 @@
           ]
         },
         {
-          "group": "Back-end SDKs",
+          "group": "后端 SDK",
           "pages": [
             "getting_started/sdks/javascript",
             "getting_started/sdks/python",
@@ -29,7 +29,7 @@
           ]
         },
         {
-          "group": "Frontend SDKs",
+          "group": "前端 SDK",
           "pages": [
             "getting_started/instant_meilisearch/javascript",
             "getting_started/instant_meilisearch/react",
@@ -38,7 +38,7 @@
           ]
         },
         {
-          "group": "Framework integrations",
+          "group": "Web 框架集成",
           "pages": [
             "getting_started/frameworks/laravel",
             "getting_started/frameworks/strapi",
@@ -47,7 +47,7 @@
           ]
         },
         {
-          "group": "Integrations",
+          "group": "第三方生态集成",
           "pages": [
             "getting_started/integrations/mcp",
             "getting_started/integrations/ai_sdk",
@@ -76,20 +76,20 @@
       ]
     },
     {
-      "tab": "Capabilities",
+      "tab": "核心功能",
       "groups": [
         {
-          "group": "Capabilities",
+          "group": "功能概览",
           "pages": [
             "capabilities/overview"
           ]
         },
         {
-          "group": "Full-text search",
+          "group": "全文检索",
           "pages": [
             "capabilities/full_text_search/overview",
             {
-              "group": "Getting started",
+              "group": "快速上手",
               "pages": [
                 "capabilities/full_text_search/getting_started/basic_search",
                 "capabilities/full_text_search/getting_started/placeholder_search",
@@ -98,7 +98,7 @@
               ]
             },
             {
-              "group": "How to",
+              "group": "操作指南",
               "pages": [
                 "capabilities/full_text_search/how_to/configure_searchable_attributes",
                 "capabilities/full_text_search/how_to/configure_stop_words",
@@ -113,7 +113,7 @@
               ]
             },
             {
-              "group": "Relevancy",
+              "group": "相关度与排序规则",
               "pages": [
                 "capabilities/full_text_search/relevancy/relevancy",
                 "capabilities/full_text_search/relevancy/ranking_rules",
@@ -125,7 +125,7 @@
               ]
             },
             {
-              "group": "Advanced",
+              "group": "进阶原理与调优",
               "pages": [
                 "capabilities/full_text_search/advanced/ranking_pipeline",
                 "capabilities/full_text_search/advanced/performance_tuning",
@@ -135,12 +135,12 @@
           ]
         },
         {
-          "group": "Hybrid and semantic search",
+          "group": "混合检索与语义搜索",
           "pages": [
             "capabilities/hybrid_search/overview",
             "capabilities/hybrid_search/getting_started",
             {
-              "group": "How to",
+              "group": "操作指南",
               "pages": [
                 "capabilities/hybrid_search/how_to/choose_an_embedder",
                 "capabilities/hybrid_search/how_to/search_with_user_provided_embeddings",
@@ -149,7 +149,7 @@
               ]
             },
             {
-              "group": "Advanced",
+              "group": "进阶原理与调优",
               "pages": [
                 "capabilities/hybrid_search/advanced/semantic_vs_hybrid",
                 "capabilities/hybrid_search/advanced/document_template_best_practices",
@@ -161,7 +161,7 @@
               ]
             },
             {
-              "group": "Providers",
+              "group": "模型服务商配置",
               "pages": [
                 "capabilities/hybrid_search/how_to/configure_openai_embedder",
                 "capabilities/hybrid_search/how_to/configure_cohere_embedder",
@@ -180,12 +180,12 @@
           ]
         },
         {
-          "group": "Geo search",
+          "group": "地理位置搜索",
           "pages": [
             "capabilities/geo_search/overview",
             "capabilities/geo_search/getting_started",
             {
-              "group": "How to",
+              "group": "操作指南",
               "pages": [
                 "capabilities/geo_search/how_to/filter_by_geo_radius",
                 "capabilities/geo_search/how_to/filter_by_geo_bounding_box",
@@ -197,12 +197,12 @@
           ]
         },
         {
-          "group": "Agentic search",
+          "group": "智能体与对话搜索",
           "pages": [
             "capabilities/agentic_search/overview",
             "capabilities/agentic_search/getting_started",
             {
-              "group": "How to",
+              "group": "操作指南",
               "pages": [
                 "capabilities/agentic_search/how_to/configure_guardrails",
                 "capabilities/agentic_search/how_to/display_source_documents",
@@ -211,7 +211,7 @@
               ]
             },
             {
-              "group": "Advanced",
+              "group": "进阶原理与调优",
               "pages": [
                 "capabilities/agentic_search/advanced/reduce_hallucination",
                 "capabilities/agentic_search/advanced/chats_api"
@@ -220,18 +220,18 @@
           ]
         },
         {
-          "group": "Multi-search",
+          "group": "多索引与联合搜索",
           "pages": [
             "capabilities/multi_search/overview",
             {
-              "group": "Getting started",
+              "group": "快速上手",
               "pages": [
                 "capabilities/multi_search/getting_started/multi_search",
                 "capabilities/multi_search/getting_started/federated_search"
               ]
             },
             {
-              "group": "How to",
+              "group": "操作指南",
               "pages": [
                 "capabilities/multi_search/how_to/boost_results_across_indexes",
                 "capabilities/multi_search/how_to/search_with_different_filters",
@@ -242,12 +242,12 @@
           ]
         },
         {
-          "group": "Filtering, sorting, and faceting",
+          "group": "过滤、排序与分面",
           "pages": [
             "capabilities/filtering_sorting_faceting/overview",
             "capabilities/filtering_sorting_faceting/getting_started",
             {
-              "group": "How to",
+              "group": "操作指南",
               "pages": [
                 "capabilities/filtering_sorting_faceting/how_to/filter_with_facets",
                 "capabilities/filtering_sorting_faceting/how_to/facet_search",
@@ -261,7 +261,7 @@
               ]
             },
             {
-              "group": "Advanced",
+              "group": "进阶原理与语法",
               "pages": [
                 "capabilities/filtering_sorting_faceting/advanced/filter_expression_syntax",
                 "capabilities/filtering_sorting_faceting/advanced/optimize_facet_performance",
@@ -273,18 +273,18 @@
           ]
         },
         {
-          "group": "Personalization",
+          "group": "个性化与推荐",
           "pages": [
             "capabilities/personalization/overview",
             {
-              "group": "Getting started",
+              "group": "快速上手",
               "pages": [
                 "capabilities/personalization/getting_started/personalized_search",
                 "capabilities/personalization/getting_started/recommendations"
               ]
             },
             {
-              "group": "How to",
+              "group": "操作指南",
               "pages": [
                 "capabilities/personalization/how_to/generate_user_context",
                 "capabilities/personalization/how_to/personalize_ecommerce_search"
@@ -293,12 +293,12 @@
           ]
         },
         {
-          "group": "Analytics",
+          "group": "搜索分析与事件追踪",
           "pages": [
             "capabilities/analytics/overview",
             "capabilities/analytics/getting_started",
             {
-              "group": "How to",
+              "group": "操作指南",
               "pages": [
                 "capabilities/analytics/how_to/bind_events_to_user",
                 "capabilities/analytics/how_to/track_click_events",
@@ -307,7 +307,7 @@
               ]
             },
             {
-              "group": "Advanced",
+              "group": "进阶原理",
               "pages": [
                 "capabilities/analytics/advanced/analytics_metrics",
                 "capabilities/analytics/advanced/events_endpoint",
@@ -317,12 +317,12 @@
           ]
         },
         {
-          "group": "Security and tenant tokens",
+          "group": "安全与租户令牌",
           "pages": [
             "capabilities/security/overview",
             "capabilities/security/getting_started",
             {
-              "group": "How to",
+              "group": "操作指南",
               "pages": [
                 "capabilities/security/how_to/generate_token_third_party",
                 "capabilities/security/how_to/generate_token_from_scratch",
@@ -330,7 +330,7 @@
               ]
             },
             {
-              "group": "Advanced",
+              "group": "进阶原理",
               "pages": [
                 "capabilities/security/advanced/tenant_token_payload",
                 "capabilities/security/advanced/rbac_with_joins"
@@ -339,12 +339,12 @@
           ]
         },
         {
-          "group": "Search rules",
+          "group": "搜索规则（精细化运营）",
           "pages": [
             "capabilities/search_rules/overview",
             "capabilities/search_rules/create_your_first_rule",
             {
-              "group": "How to",
+              "group": "操作指南",
               "pages": [
                 "capabilities/search_rules/how_to/pin_multiple_results",
                 "capabilities/search_rules/how_to/boost_documents",
@@ -355,7 +355,7 @@
               ]
             },
             {
-              "group": "Advanced",
+              "group": "进阶原理",
               "pages": [
                 "capabilities/search_rules/advanced/how_search_rules_work",
                 "capabilities/search_rules/advanced/specific_behaviors"
@@ -365,11 +365,11 @@
           ]
         },
         {
-          "group": "Platform",
+          "group": "云平台能力",
           "pages": [
             "capabilities/platform/overview",
             {
-              "group": "Infrastructure",
+              "group": "基础设施",
               "pages": [
                 "capabilities/platform/infrastructure/overview",
                 "capabilities/platform/infrastructure/create_a_project",
@@ -381,7 +381,7 @@
               ]
             },
             {
-              "group": "Monitoring",
+              "group": "监控告警",
               "pages": [
                 "capabilities/platform/monitoring/overview",
                 "capabilities/platform/monitoring/search_performance",
@@ -391,7 +391,7 @@
               ]
             },
             {
-              "group": "Billing",
+              "group": "计费与账单",
               "pages": [
                 "capabilities/platform/billing/overview",
                 "capabilities/platform/billing/pricing_model",
@@ -400,12 +400,12 @@
               ]
             },
             {
-              "group": "Teams",
+              "group": "团队与权限",
               "pages": [
                 "capabilities/platform/teams/overview",
                 "capabilities/platform/teams/getting_started",
                 {
-                  "group": "How to",
+                  "group": "操作指南",
                   "pages": [
                     "capabilities/platform/teams/how_to/manage_team_roles",
                     "capabilities/platform/teams/how_to/configure_sso_for_team"
@@ -414,7 +414,7 @@
               ]
             },
             {
-              "group": "Security",
+              "group": "平台安全",
               "pages": [
                 "capabilities/platform/security/overview",
                 "capabilities/platform/security/manage_ip_allowlist",
@@ -422,7 +422,7 @@
               ]
             },
             {
-              "group": "Management",
+              "group": "管理与配置",
               "pages": [
                 "capabilities/platform/management/overview",
                 "capabilities/platform/management/webhooks",
@@ -432,12 +432,12 @@
           ]
         },
         {
-          "group": "Indexing",
+          "group": "数据索引与管理",
           "pages": [
             "capabilities/indexing/overview",
             "capabilities/indexing/getting_started",
             {
-              "group": "How to",
+              "group": "操作指南",
               "pages": [
                 "capabilities/indexing/how_to/add_and_update_documents",
                 "capabilities/indexing/how_to/handle_multilingual_data",
@@ -451,7 +451,7 @@
               ]
             },
             {
-              "group": "Tasks and batches",
+              "group": "任务与批处理",
               "pages": [
                 "capabilities/indexing/tasks_and_batches/async_operations",
                 "capabilities/indexing/tasks_and_batches/monitor_tasks",
@@ -460,13 +460,13 @@
               ]
             },
             {
-              "group": "Joins",
+              "group": "索引关联 (Joins)",
               "pages": [
                 "capabilities/indexing/joins/define_index_relationships"
               ]
             },
             {
-              "group": "Advanced",
+              "group": "进阶原理与调优",
               "pages": [
                 "capabilities/indexing/advanced/indexing_best_practices",
                 "capabilities/indexing/advanced/tokenization",
@@ -478,10 +478,10 @@
       ]
     },
     {
-      "tab": "Reference",
+      "tab": "参考手册",
       "groups": [
         {
-          "group": "Overview",
+          "group": "接口规范概览",
           "pages": [
             "reference/api/authorization",
             "reference/api/headers",
@@ -491,7 +491,7 @@
           ]
         },
         {
-          "group": "API Routes",
+          "group": "API 路由列表",
           "openapi": {
             "source": "assets/release-assets/meilisearch-openapi-mintlify.json",
             "directory": "reference/api"
@@ -514,7 +514,7 @@
           },
           "pages": [
             {
-              "group": "Indexes",
+              "group": "索引管理 (Indexes)",
               "pages": [
                 "GET /indexes",
                 "POST /indexes",
@@ -526,7 +526,7 @@
               ]
             },
             {
-              "group": "Documents",
+              "group": "文档管理 (Documents)",
               "pages": [
                 "GET /indexes/{index_uid}/documents",
                 "POST /indexes/{index_uid}/documents/fetch",
@@ -541,39 +541,39 @@
               ]
             },
             {
-              "group": "Search",
+              "group": "搜索接口 (Search)",
               "pages": [
                 "POST /indexes/{index_uid}/search",
                 "GET /indexes/{index_uid}/search"
               ]
             },
             {
-              "group": "Multi-search",
+              "group": "多索引搜索 (Multi-search)",
               "pages": [
                 "POST /multi-search"
               ]
             },
             {
-              "group": "Facet search",
+              "group": "分面搜索 (Facet search)",
               "pages": [
                 "POST /indexes/{index_uid}/facet-search"
               ]
             },
             {
-              "group": "Similar documents",
+              "group": "相似文档 (Similar documents)",
               "pages": [
                 "POST /indexes/{index_uid}/similar",
                 "GET /indexes/{index_uid}/similar"
               ]
             },
             {
-              "group": "MCP",
+              "group": "MCP 协议支持",
               "pages": [
                 "POST /mcp"
               ]
             },
             {
-              "group": "Chats",
+              "group": "对话接口 (Chats)",
               "pages": [
                 "GET /chats",
                 "GET /chats/{workspace_uid}",
@@ -585,7 +585,7 @@
               ]
             },
             {
-              "group": "Search Rules",
+              "group": "动态搜索规则 (Search Rules)",
               "pages": [
                 "POST /dynamic-search-rules",
                 "DELETE /dynamic-search-rules",
@@ -595,7 +595,7 @@
               ]
             },
             {
-              "group": "Tasks",
+              "group": "异步任务 (Tasks)",
               "pages": [
                 "GET /tasks",
                 "GET /tasks/{task_id}",
@@ -924,10 +924,10 @@
       ]
     },
     {
-      "tab": "Resources",
+      "tab": "生态资源",
       "groups": [
         {
-          "group": "Comparisons",
+          "group": "技术方案与竞品对比",
           "pages": [
             "resources/comparisons/alternatives",
             "resources/comparisons/elasticsearch",
@@ -941,7 +941,7 @@
           ]
         },
         {
-          "group": "Migration",
+          "group": "数据迁移指南",
           "pages": [
             "resources/migration/migrating_cloud",
             "resources/migration/updating",
@@ -954,11 +954,11 @@
           ]
         },
         {
-          "group": "Self-hosting",
+          "group": "自托管与私有部署",
           "pages": [
             "resources/self_hosting/overview",
             {
-              "group": "Getting started",
+              "group": "快速上手",
               "pages": [
                 "resources/self_hosting/getting_started/quick_start",
                 "resources/self_hosting/getting_started/install_locally",
@@ -967,14 +967,14 @@
               ]
             },
             {
-              "group": "Configuration",
+              "group": "参数配置",
               "pages": [
                 "resources/self_hosting/configuration/overview",
                 "resources/self_hosting/configuration/reference"
               ]
             },
             {
-              "group": "Deployment",
+              "group": "生产部署",
               "pages": [
                 "resources/self_hosting/deployment/overview",
                 "resources/self_hosting/deployment/running_production",
@@ -984,7 +984,7 @@
               ]
             },
             {
-              "group": "Security",
+              "group": "安全设置",
               "pages": [
                 "resources/self_hosting/security/overview",
                 "resources/self_hosting/security/master_api_keys",
@@ -995,7 +995,7 @@
               ]
             },
             {
-              "group": "Data backup",
+              "group": "数据备份与恢复",
               "pages": [
                 "resources/self_hosting/data_backup/overview",
                 "resources/self_hosting/data_backup/dumps",
@@ -1003,7 +1003,7 @@
               ]
             },
             {
-              "group": "Sharding and replication",
+              "group": "分片与高可用集群",
               "pages": [
                 "resources/self_hosting/sharding/overview",
                 "resources/self_hosting/sharding/setup_sharded_cluster",
@@ -1012,7 +1012,7 @@
               ]
             },
             {
-              "group": "Advanced",
+              "group": "进阶指南",
               "pages": [
                 "resources/self_hosting/performance/ram_multithreading",
                 "resources/self_hosting/webhooks",
@@ -1023,7 +1023,7 @@
           ]
         },
         {
-          "group": "Demos",
+          "group": "实战案例与演示 (Demos)",
           "pages": [
             "resources/demos/overview",
             "resources/demos/agentic_movie_search",
@@ -1050,7 +1050,7 @@
           ]
         },
         {
-          "group": "Under the hood",
+          "group": "底层原理与架构",
           "pages": [
             "resources/internals/documents",
             "resources/internals/indexes",
@@ -1067,7 +1067,7 @@
           ]
         },
         {
-          "group": "Other resources",
+          "group": "其他参考资源",
           "pages": [
             "resources/help/sdks",
             "resources/help/faq",
@@ -1083,10 +1083,10 @@
       ]
     },
     {
-      "tab": "Changelog",
+      "tab": "更新日志",
       "pages": [
         {
-          "group": "Changelog",
+          "group": "版本发布记录",
           "root": "changelog",
           "expanded": false,
           "pages": [

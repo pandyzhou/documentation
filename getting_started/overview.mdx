@@ -1,82 +1,82 @@
 ---
-title: Welcome to Meilisearch
-sidebarTitle: Overview
-description: Meilisearch indexes your content and makes it accessible to both humans and AI through search, conversational interfaces, and APIs.
+title: 欢迎使用 Meilisearch
+sidebarTitle: 概览
+description: Meilisearch 为你的内容建立索引，并通过毫秒级搜索、对话式界面与统一 API，让数据轻松赋能人类用户与 AI 应用。
 ---
 
-Meilisearch **indexes your content and makes it accessible to both humans and AI**. It stores your documents and embeddings, then exposes them through fast full-text search, semantic search, and conversational interfaces, all from a single API.
+Meilisearch **能够为你的内容建立高效索引，并使其轻松服务于人类与 AI**。它支持存储你的文档与向量嵌入（Embeddings），并通过统一的 API 提供极速全文检索、语义搜索以及对话式交互能力。
 
 <CardGroup cols={2}>
-  <Card title="Start with Cloud" icon="cloud" href="/getting_started/first_project">
-    Get started in minutes with Meilisearch Cloud
+  <Card title="从云服务开始" icon="cloud" href="/getting_started/first_project">
+    使用 Meilisearch Cloud，数分钟内免运维快速起步
   </Card>
-  <Card title="Self-host" icon="server" href="/resources/self_hosting/getting_started/quick_start">
-    Deploy on your own infrastructure
+  <Card title="自托管部署" icon="server" href="/resources/self_hosting/getting_started/quick_start">
+    在自己的服务器或云基础设施上独立部署
   </Card>
 </CardGroup>
 
-## How it works
+## 工作原理
 
-**Index once, access everywhere.** You push your content to Meilisearch. It stores the documents, builds the search indexes, and when configured with an embedder, generates vector embeddings automatically. Your data becomes accessible to both end users and AI systems.
+**一次建索，处处可用。** 你只需将内容推送到 Meilisearch 中，它会自动存储文档、构建搜索索引；当配置了向量嵌入器（Embedder）时，它还会全自动生成向量。你的数据将瞬间具备服务最终用户与 AI 系统的能力。
 
 <CardGroup cols={2}>
-  <Card title="For humans" icon="user">
-    Search-as-you-type interfaces, faceted navigation, filtering, sorting, and personalized results, all in under 50ms.
+  <Card title="服务人类用户" icon="user">
+    打字即搜的即时搜索栏、多维分面导航、过滤、多维排序与个性化结果，全部在 50 毫秒以内极速响应。
   </Card>
-  <Card title="For AI" icon="brain">
-    Semantic search, RAG-powered conversational interfaces, and similar document retrieval so LLMs can answer questions grounded in your data.
+  <Card title="赋能 AI 应用" icon="brain">
+    语义搜索、基于 RAG 的对话交互以及相似文档推荐，让大语言模型（LLM）基于你的私有数据准确回答问题。
   </Card>
 </CardGroup>
 
-## What you can build
+## 你可以用它构建什么？
 
-- **Search interfaces**: instant, typo-tolerant search bars for websites, apps, and documentation.
-- **AI assistants**: connect LLMs to your content with built-in RAG. Users ask questions in natural language and get answers grounded in your data.
-- **Recommendation systems**: find similar documents and personalize results based on user preferences.
-- **Internal tools**: make company knowledge searchable across documents, databases, and APIs.
+- **即时搜索界面**：为网站、移动端应用或知识库文档打造毫秒级响应、自带错别字容错的搜索框。
+- **AI 智能助手**：通过内置的 RAG 能力将大模型与你的私有内容连接。用户可以用自然语言提问，并获得基于真实数据的可靠回答。
+- **智能推荐系统**：自动发现相似内容，并结合用户偏好提供个性化推荐。
+- **企业内部工具**：打通散落在各类文档、业务数据库和 API 中的企业知识，实现跨系统秒级统一检索。
 
-## Why Meilisearch?
+## 为什么选择 Meilisearch？
 
-Meilisearch is built on three pillars:
+Meilisearch 的设计基于三大核心支柱：
 
-### Performance
+### 极致性能 (Performance)
 
-Meilisearch is designed for speed at scale. Every query returns results in under 50 milliseconds, whether your index contains a thousand documents or tens of millions. The engine uses memory-mapped storage, multi-threaded indexing, and DiskANN-based vector search to maintain consistent performance as your data grows. Sharding and replication let you scale horizontally without sacrificing latency.
+Meilisearch 为大规模高并发场景下的极速响应而生。无论你的索引里只有几千篇文档还是数千万行数据，绝大多数查询都能在 **50 毫秒**以内返回。底层引擎采用内存映射存储（LMDB）、多线程并行索引流水线以及基于 DiskANN 的向量搜索，随着数据规模增长依然能保持高度稳定的检索延迟。同时支持分片（Sharding）与主从复制，帮助你在不牺牲低延迟的前提下实现水平弹性扩容。
 
-### Relevancy
+### 精准相关度 (Relevancy)
 
-Getting the right results means combining multiple signals. Meilisearch chains seven default ranking rules (words, typo, proximity, attributeRank, sort, wordPosition, and exactness) with support for custom rules tailored to your domain. Hybrid search merges keyword and semantic results so users find what they're looking for even when they don't use the exact right words. Conversational search goes further: RAG-powered responses are grounded in your indexed data, so AI answers are sourced and verifiable.
+呈现精准的检索结果依赖多种信号的综合权衡。Meilisearch 默认串联了 7 项排序规则（词频匹配 words、拼写容错 typo、词距 proximity、属性权重 attributeRank、自定义排序 sort、命中词位置 wordPosition 以及精确度 exactness），并且完全支持根据你的业务场景定制规则。其混合搜索（Hybrid Search）融合了关键词与向量语义，即使用户没有用对准确关键词，也能精准召回想要的结果。对话式搜索更进一步：基于 RAG 的回答全部严格锚定在你的已索引数据中，确保 AI 回复有据可查、杜绝幻觉。
 
-### Developer experience
+### 优秀的开发者体验 (Developer Experience)
 
-Meilisearch is a single binary with a REST API. There is no cluster to configure, no schema to define, and no separate vector store to manage. Send your documents and Meilisearch handles tokenization, indexing, and vector generation through auto-embeddings. SDKs for 10+ languages, one-click deployment on Meilisearch Cloud, and sensible defaults mean you go from zero to production search in minutes, not weeks.
+Meilisearch 是一个带有 REST API 的单一独立二进制文件。你不需要像 Elasticsearch 那样搭建维护复杂的分布式集群，不需要提前定义死板的表结构 Schema，更不需要额外维护独立的向量数据库。只要把 JSON 文档发给它，Meilisearch 会自动处理分词、倒排索引以及向量生成。加之覆盖 10+ 种主流编程语言的 SDK、Meilisearch Cloud 的一键部署以及极其合理的默认配置，让你在数分钟而不是数周内，就能把生产级搜索系统上线运行。
 
-## See it in action
+## 实时体验演示
 
-[![Search bar updating results](/assets/images/movies-demo-dark.gif)](https://where2watch.meilisearch.com/?utm_campaign=oss&utm_source=docs&utm_medium=overview)
+[![搜索框输入实时展示结果](/assets/images/movies-demo-dark.gif)](https://where2watch.meilisearch.com/?utm_campaign=oss&utm_source=docs&utm_medium=overview)
 
-Try our live demos:
-- [E-commerce search](https://ecommerce.meilisearch.com/) - Browse millions of products
-- [Where to Watch](https://where2watch.meilisearch.com/) - Search the TMDB movie database
-- [SaaS search](https://saas.meilisearch.com/) - Multi-model search with Laravel
+体验我们的官方在线 Demo：
+- [电商搜索 Demo](https://ecommerce.meilisearch.com/) - 实时检索数百万件商品
+- [影视搜索 (Where to Watch)](https://where2watch.meilisearch.com/) - 检索 TMDB 全量电影数据库
+- [SaaS 搜索 Demo](https://saas.meilisearch.com/) - 基于 Laravel 的多模型混合搜索
 
-## Get started with Meilisearch Cloud
+## 开启 Meilisearch Cloud 之旅
 
-[Meilisearch Cloud](https://www.meilisearch.com/cloud?utm_campaign=oss&utm_source=docs&utm_medium=overview) gets you up and running in minutes with automatic scaling, updates, and maintenance. Start with a [14-day free trial](https://cloud.meilisearch.com).
+[Meilisearch Cloud](https://www.meilisearch.com/cloud?utm_campaign=oss&utm_source=docs&utm_medium=overview) 支持全自动弹性伸缩、无缝升级与备份运维，让你几分钟内即可开始构建。提供 [14 天免费试用](https://cloud.meilisearch.com)。
 
-## Next steps
+## 下一步探索
 
 <CardGroup cols={2}>
-  <Card title="Explore features" icon="sparkles" href="/getting_started/features">
-    See all Meilisearch capabilities
+  <Card title="浏览核心特性" icon="sparkles" href="/getting_started/features">
+    全面了解 Meilisearch 的各项强大功能
   </Card>
-  <Card title="Good practices" icon="check" href="/getting_started/good_practices">
-    Learn how to format, chunk, and index your data
+  <Card title="最佳实践指南" icon="check" href="/getting_started/good_practices">
+    学习如何规范组织、分块和建立高质量数据索引
   </Card>
-  <Card title="Choose your SDK" icon="code" href="/getting_started/sdks/javascript">
-    Get started with your preferred language
+  <Card title="选择你的开发语言 SDK" icon="code" href="/getting_started/sdks/javascript">
+    从 Python、Go、Node.js、Java 等主流语言中开始接入
   </Card>
-  <Card title="Glossary" icon="book" href="/getting_started/glossary">
-    Key terms and concepts explained
+  <Card title="专业术语表" icon="book" href="/getting_started/glossary">
+    深入理解搜索引擎的核心术语与设计概念
   </Card>
 </CardGroup>

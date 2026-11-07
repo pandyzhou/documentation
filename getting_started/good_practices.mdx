@@ -1,33 +1,33 @@
 ---
-title: Good practices
-sidebarTitle: Good practices
-description: Best practices for formatting documents, chunking content, batching requests, and optimizing indexing performance in Meilisearch.
+title: 最佳实践指南
+sidebarTitle: 最佳实践
+description: 涵盖 Meilisearch 文档格式规范、内容分块、批量请求优化与建索性能调优的权威最佳实践。
 ---
 
-Follow these guidelines to get the most out of Meilisearch, whether you're indexing a few hundred documents or scaling to millions.
+遵循以下准则，无论是建立数百篇文档的初创项目，还是扩展到千万级数据的企业级系统，都能最大化发挥 Meilisearch 的性能潜力。
 
-## Document formatting
+## 文档格式规范 (Document formatting)
 
-### Use a simple, consistent structure
+### 保持简单、统一的字段结构
 
-Meilisearch can handle complex nested JSON, so you don't need to flatten everything. However, simpler structures are easier to configure and search through. The key rule is: **never use dynamic field names**. Every document in an index should share the same field names. If field names change from one document to the next, Meilisearch cannot index them properly.
+Meilisearch 完全能够处理多层嵌套的复杂 JSON，你不需要手动将所有属性扁平化。然而，结构越简单，后续的搜索过滤配置就越轻松。最关键的黄金法则是：**切勿使用动态字段名（Dynamic field names）**。同一个索引内的每篇文档都应该共享相同的字段名体系。如果文档之间的字段名各不相同，Meilisearch 将无法构建有效的倒排索引。
 
-Good: consistent field names, nested objects are fine:
+✅ **推荐做法**：字段名统一规范，嵌套对象同样支持良好：
 
 ```json
 {
   "id": 1,
-  "title": "Running shoes",
-  "brand": "Nike",
+  "title": "跑步鞋",
+  "brand": "耐克",
   "price": 120,
   "details": {
-    "color": "black",
+    "color": "黑色",
     "size": 42
   }
 }
 ```
 
-Bad: dynamic field names (keys change per document):
+❌ **错误做法**：动态键名（字段 Key 随着文档内容变化）：
 
 ```json
 [
@@ -42,73 +42,73 @@ Bad: dynamic field names (keys change per document):
 ]
 ```
 
-### Use meaningful primary keys
+### 使用具有明确业务意义的主键 (Primary key)
 
-Choose a primary key that uniquely identifies each document and is stable over time. If your documents come from a database, use the database's primary key. If Meilisearch doesn't find a primary key candidate, it will ask you to set one explicitly.
+选择能够全局唯一标识每篇文档且长期保持稳定的字段作为主键。如果文档来源于数据库，直接使用数据库自增 ID 或 UUID 即可。如果 Meilisearch 未能在首批文档中推断出合适的主键候选字段，它会提示你显式指定。
 
-### Remove unnecessary fields
+### 剔除无用冗余字段
 
-If a field is not searchable, filterable, sortable, or displayed, remove it from your documents before indexing. Smaller documents are indexed faster and consume less disk and memory.
+如果某个字段既不需要参与全文搜索（Searchable）、也不需要作为过滤（Filterable）或排序条件（Sortable），甚至前端展示时也不会用到，请在写入 Meilisearch 之前直接将其剔除。文档越小，建索速度越快，占用的磁盘和内存开销也越少。
 
-## Chunking content
+## 长文本分块 (Chunking content)
 
-When indexing long-form content (articles, documentation pages, books), break it into smaller, meaningful chunks rather than indexing entire pages as single documents.
+在为文章、长篇开发文档、电子书或博客等长文本建立索引时，**建议将其拆分成更小、更具体的逻辑分块（Chunks）**，而不是把整整几万字的长页面作为一个单篇文档存入。
 
-### Why chunk
+### 为什么要进行内容分块？
 
-- **Better relevancy**: a search for "installation guide" is more likely to match a specific section than an entire 5,000-word page.
-- **Better displayed results**: users see targeted excerpts instead of massive blocks of text.
-- **Faster indexing**: smaller documents are processed more quickly.
+- **显著提升相关度得分**：用户搜索“安装教程”时，命中一个专注于安装的 200 字小章节，远比命中一篇包含 5000 字全集的大页面要精准得多。
+- **更好的前端展示体验**：搜索结果中可以直接高亮呈现精准的定位摘要，而不是铺天盖地的大段文字。
+- **更快的建索速度**：小颗粒度的文档在分词和倒排索引构建时的并行处理效率更高。
 
-### How to chunk
+### 如何科学分块？
 
-Split content at logical boundaries like headings, sections, or paragraphs. Each chunk should be self-contained enough to make sense on its own.
+按照标题（Headings）、小节（Sections）或自然段落等逻辑边界进行切分。每个分块应当具备一定的自包含性，即使脱离上下文也能被读者理解：
 
 ```json
 [
   {
     "id": "getting-started-install",
-    "page": "Getting started",
-    "section": "Installation",
-    "content": "Install Meilisearch using the following command...",
+    "page": "快速上手",
+    "section": "环境安装",
+    "content": "使用以下命令快速安装 Meilisearch...",
     "url": "/docs/getting-started#installation"
   },
   {
     "id": "getting-started-config",
-    "page": "Getting started",
-    "section": "Configuration",
-    "content": "Configure your instance by setting environment variables...",
+    "page": "快速上手",
+    "section": "参数配置",
+    "content": "通过设置环境变量来配置你的实例参数...",
     "url": "/docs/getting-started#configuration"
   }
 ]
 ```
 
-Include metadata fields (page title, section, URL) so users can navigate back to the original content.
+务必附带页面标题、小节锚点与跳转 URL 等元数据字段，方便用户点击搜索结果时直接精确定位到原网页。
 
-## Batching requests
+## 批量请求与网络优化 (Batching requests)
 
-### Send documents in large batches
+### 使用大批量（Batch）导入文档
 
-A single large HTTP payload is processed more quickly than multiple smaller payloads. For example, indexing 100,000 documents in two batches of 50,000 is faster than four batches of 25,000.
+发送单次大体积的 HTTP 请求，处理效率远高于连续发送多次小请求。例如，将 10 万篇文档分成两批（每批 5 万篇）导入，耗时远少于分成四批（每批 2.5 万篇）。
 
-By default, Meilisearch accepts payloads up to 100MB. Enterprise accounts can request a higher limit.
+默认情况下，Meilisearch 允许单次请求体（Payload）最大达 **100MB**（企业版支持调大）。
 
-### Use compression
+### 开启 HTTP 请求压缩
 
-Compress your HTTP payloads using `gzip`, `deflate`, or `br` encoding to reduce transfer time and bandwidth. Meilisearch accepts all standard [encoding formats](/reference/api/headers).
+在发送大量数据时，使用 `gzip`、`deflate` 或 `br`（Brotli）对 HTTP 请求体进行压缩，能极大降低网络传输耗时和服务器带宽压力。Meilisearch 原生支持所有主流的 [压缩编码规范](/reference/api/headers)。
 
-### Monitor task completion during large imports
+### 异步轮询任务执行状态
 
-When sending multiple batches, you don't need to wait for each task to complete before sending the next one. Meilisearch queues all tasks and processes them in order. However, monitoring [task status](/capabilities/indexing/tasks_and_batches/monitor_tasks) helps you detect errors early.
+向 Meilisearch 推送多批数据时，你**不需要**苦苦等待上一批任务执行完毕才发下一批。Meilisearch 的底层任务队列（Task Queue）会自动将请求排队并按序消费。你可以异步查询 [任务状态 (Task Status)](/capabilities/indexing/tasks_and_batches/monitor_tasks)，以便在发生网络异常或格式错误时及时捕获告警。
 
-## Indexing performance
+## 索引构建性能调优 (Indexing performance)
 
-### Configure settings before adding documents
+### 务必“先配置设置，后写入文档”
 
-Always configure your index settings (ranking rules, filterable attributes, searchable attributes) **before** adding documents. Changing settings after indexing triggers a full reindex of all documents.
+在向索引写入大量文档**之前**，务必先完成索引的核心配置（排序规则 rankingRules、过滤字段 filterableAttributes、搜索字段 searchableAttributes）。如果在写入了数百万文档后再去修改设置，Meilisearch 将不得不触发全量文档的底层重建索引，极耗 CPU 与磁盘 I/O。
 
 ```bash
-# 1. Create the index and configure settings
+# 步骤 1: 创建索引并提前配置好规则
 curl -X PATCH 'MEILISEARCH_URL/indexes/movies/settings' \
   -H 'Content-Type: application/json' \
   -H 'Authorization: Bearer API_KEY' \
@@ -118,50 +118,50 @@ curl -X PATCH 'MEILISEARCH_URL/indexes/movies/settings' \
     "sortableAttributes": ["release_year", "rating"]
   }'
 
-# 2. Then add documents
+# 步骤 2: 然后再批量导入数据集
 curl -X POST 'MEILISEARCH_URL/indexes/movies/documents' \
   -H 'Content-Type: application/json' \
   -H 'Authorization: Bearer API_KEY' \
   --data-binary @movies.json
 ```
 
-### Restrict searchable attributes
+### 严格收窄可搜索属性 (Searchable attributes)
 
-By default, all fields are searchable. Limit searchable attributes to only the fields users should be able to search through. This improves both relevancy and indexing speed.
+默认情况下，文档中的所有字段都是可被检索的。强烈建议将其限定为仅用户真正会去搜索的字段（例如标题、正文、标签）。这不仅能极大提升相关度质量，还能缩减索引体积、加快建索速度。
 
-### Use separate indexes for separate languages
+### 多语言内容使用独立索引
 
-If your dataset contains content in multiple languages, create a separate index for each language. Meilisearch's tokenizer, stop words, and ranking algorithms are language-specific, so mixing languages in a single index degrades relevancy for all of them.
+如果你的业务数据集包含多种不同语言（如中文、英文、日语），请为每种语言创建单独的索引。Meilisearch 的分词器（Tokenizer）、停用词典和排序算法针对不同语言有专门优化，混在一个索引中会导致各种语言的分词精度均受折损。
 
-### Avoid creating too many indexes
+### 避免创建过多无意义的索引
 
-Each index consumes resources. If you notice performance degradation with multi-index searches, consider consolidating indexes where possible.
+每个索引都会占用系统的内存映射和文件句柄资源。如果你在多索引并发联合搜索时观察到性能瓶颈，应优先考虑在逻辑上合并索引，改用字段过滤器进行区分。
 
-### Enable binary quantization for large AI search datasets
+### 大规模向量检索启用二进制量化 (Binary Quantization)
 
-If you use AI-powered search with more than 1 million documents and high-dimensional embeddings (1400+ dimensions), consider enabling [binary quantization](/reference/api/settings/update-embedders). This reduces semantic search precision slightly but greatly improves indexing and search performance.
+如果你正在使用 AI 向量搜索，且文档数量超过 100 万篇、向量维度较高（1400 维以上），建议开启 [二进制量化 (Binary Quantization)](/reference/api/settings/update-embedders)。它会在极轻微折损语义精度的前提下，将向量体积压缩 10 倍以上，显著释放内存压力并加快检索速度。
 
 <Warning>
-Binary quantization is irreversible. Once enabled, the only way to recover original vector precision is to re-vectorize the entire index.
+二进制量化是不可逆的操作。一旦开启，若想还原为原本的浮点向量精度，必须对整个索引重新跑模型生成向量。
 </Warning>
 
-## Keep Meilisearch up to date
+## 保持引擎版本及时升级
 
-Each release includes indexing and search performance improvements. Check the [changelog](/changelog) and [GitHub releases](https://github.com/meilisearch/meilisearch/releases?q=prerelease%3Afalse) regularly.
+Meilisearch 的每次新版本发布通常都会包含针对分词性能、内存管理和向量算法的实质性提升。建议定期关注 [更新日志](/changelog) 以及 [GitHub Releases](https://github.com/meilisearch/meilisearch/releases?q=prerelease%3Afalse)。
 
-## Next steps
+## 下一步
 
 <CardGroup cols={2}>
-  <Card title="Configure index settings" icon="gear" href="/capabilities/indexing/overview">
-    Learn how to set up searchable, filterable, and sortable attributes
+  <Card title="配置索引设置" icon="gear" href="/capabilities/indexing/overview">
+    深入学习如何配置可搜索、可过滤与可排序属性
   </Card>
-  <Card title="Relevancy and ranking" icon="ranking-star" href="/capabilities/full_text_search/relevancy/relevancy">
-    Understand how Meilisearch ranks search results
+  <Card title="相关度与打分规则" icon="ranking-star" href="/capabilities/full_text_search/relevancy/relevancy">
+    全面了解 Meilisearch 如何为结果打分与排序
   </Card>
-  <Card title="Working with tasks" icon="list-check" href="/capabilities/indexing/tasks_and_batches/monitor_tasks">
-    Monitor indexing progress with the task API
+  <Card title="任务管理与监控" icon="list-check" href="/capabilities/indexing/tasks_and_batches/monitor_tasks">
+    使用 Task API 实时监控数据处理流水线
   </Card>
-  <Card title="Security" icon="lock" href="/resources/self_hosting/security/basic_security">
-    Secure your Meilisearch instance with API keys
+  <Card title="安全与访问控制" icon="lock" href="/resources/self_hosting/security/basic_security">
+    使用 API 密钥为你的实例配置安全策略
   </Card>
 </CardGroup>

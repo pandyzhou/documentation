@@ -1,107 +1,107 @@
 ---
-title: First Project
-sidebarTitle: First Project
-description: Learn how to create your first Meilisearch Cloud project.
+title: 创建你的第一个项目
+sidebarTitle: 第一个项目
+description: 了解如何创建你的第一个 Meilisearch Cloud 项目并体验极速搜索。
 ---
 
-This tutorial walks you through setting up [Meilisearch Cloud](https://meilisearch.com/cloud), creating a project and an index, adding documents to it, and performing your first search with the default web interface.
+本教程将引导你完成 [Meilisearch Cloud](https://meilisearch.com/cloud) 的初始设置：包括创建项目、建立索引、导入文档，以及使用默认的 Web 界面执行你的第一次搜索。
 
-You need a Meilisearch Cloud account to follow along. If you don't have one, register for a 14-day free trial account at [https://cloud.meilisearch.com/register](https://cloud.meilisearch.com/register?utm_campaign=oss&utm_source=docs&utm_medium=cloud-quick-start).
+跟随本教程需要一个 Meilisearch Cloud 账户。如果你还没有，可以在 [https://cloud.meilisearch.com/register](https://cloud.meilisearch.com/register?utm_campaign=oss&utm_source=docs&utm_medium=cloud-quick-start) 注册 14 天免费试用账户。
 
-## Creating a project
+## 创建项目
 
-To use Meilisearch Cloud, you must first create a project. Projects act as containers for indexes, tasks, billing, and other information related to Meilisearch Cloud.
+使用 Meilisearch Cloud 前，必须先创建一个项目（Project）。项目是容纳索引、任务队列、计费信息以及相关设置的顶层容器。
 
-Click the "New project" button on the top menu. If you have a free trial account and this is your first project, the button will read "Start free trial" instead:
-
-<Frame>
-  <img src="/assets/images/cloud-getting-started/1-new-project.png" alt="The Meilisearch Cloud menu, featuring the 'New Project' button" />
-</Frame>
-
-Name your project `meilisearch-quick-start` and select the region closest to you, then click on "Create project":
+点击顶部菜单中的 "New project" 按钮。如果是免费试用账户且这是你的第一个项目，该按钮会显示为 "Start free trial"：
 
 <Frame>
-  <img src="/assets/images/cloud-getting-started/2-create-project.png" alt="A modal window with two mandatory fields: 'Project name' and 'Select a region'" />
+  <img src="/assets/images/cloud-getting-started/1-new-project.png" alt="Meilisearch Cloud 菜单中的 'New Project' 按钮" />
 </Frame>
 
-If you are not using a free trial account, you must also choose a billing plan based on the size of your dataset and number of searches per month:
+将项目命名为 `meilisearch-quick-start`，选择离你最近的地域（Region），然后点击 "Create project"：
 
 <Frame>
-  <img src="/assets/images/cloud-getting-started/3-project-billing.png" alt="A variation of the previous modal window with an extra mandatory field: 'Select a plan'. There are a few billing plan options" />
+  <img src="/assets/images/cloud-getting-started/2-create-project.png" alt="包含两个必填项的项目弹窗：项目名称与地域选择" />
 </Frame>
 
-Creating your project might take a few minutes. Check the project list to follow its status. Once the project is ready, click on its name to go to the project overview page:
+如果你使用的是正式付费账户，还需要根据数据集大小与每月搜索预估量选择计费方案：
 
 <Frame>
-  <img src="/assets/images/cloud-getting-started/4-project-list.png" alt="Meilisearch Cloud's main list of projects. It features only one project, 'meilisearch-quick-start', and shows information such as API keys, URL, and number of monthly searches" />
+  <img src="/assets/images/cloud-getting-started/3-project-billing.png" alt="包含计划选择的项目创建弹窗" />
 </Frame>
 
-## Creating an index and adding documents
-
-After creating your project, you must index the data you want to search. Meilisearch stores and processes data you add to it in indexes. A single project may contain multiple indexes.
-
-First, click on the indexes tab in the project page menu:
+项目创建可能需要数分钟。你可以在项目列表中关注其状态。就绪后，点击项目名称即可进入项目概览页：
 
 <Frame>
-  <img src="/assets/images/cloud-getting-started/5-project-page-menu-indexes.png" alt="The project overview page, featuring a secondary menu with several links. A red arrow points at a menu item: 'Indexes'" />
+  <img src="/assets/images/cloud-getting-started/4-project-list.png" alt="Meilisearch Cloud 的项目列表页面，展示 API 密钥、URL 与每月搜索量" />
 </Frame>
 
-This leads you to the index listing. Click on "New index":
+## 创建索引并添加文档
+
+创建好项目后，必须对需要搜索的数据建立索引。Meilisearch 在索引（Index）中组织和存储数据。单个项目可以包含多个索引。
+
+首先，在项目页菜单中点击 "Indexes" 标签：
 
 <Frame>
-  <img src="/assets/images/cloud-getting-started/6-index-list-empty.png" alt="An empty list of indexes in this project with a button on the upper right corner" />
+  <img src="/assets/images/cloud-getting-started/5-project-page-menu-indexes.png" alt="项目概览页的二级菜单，红色箭头指向 'Indexes'" />
 </Frame>
 
-Write `movies` in the name field and click on "Create Index":
+进入索引列表页面后，点击右上角的 "New index"：
 
 <Frame>
-  <img src="/assets/images/cloud-getting-started/7-create-index.png" alt="A modal window with one mandatory field: 'Index name'" />
+  <img src="/assets/images/cloud-getting-started/6-index-list-empty.png" alt="空索引列表页面，右上角有新建按钮" />
 </Frame>
 
-The final step in creating an index is to add data to it. Choose "File upload":
+在名称输入框中填写 `movies`，点击 "Create Index"：
 
 <Frame>
-  <img src="/assets/images/cloud-getting-started/8-file-upload.png" alt="Another modal window with three options. A red arrow points at the chosen option, 'File upload'" />
+  <img src="/assets/images/cloud-getting-started/7-create-index.png" alt="新建索引弹窗" />
 </Frame>
 
-Meilisearch Cloud will ask you for your dataset. To follow along, use this <a href="https://www.meilisearch.com/docs/assets/datasets/movies.json" download="movies.json">list of movies</a>. Download the file to your computer, drag and drop it into the indicated area, then click on "Import documents":
+创建索引的最后一步是添加数据。选择 "File upload"（文件上传）：
 
 <Frame>
-  <img src="/assets/images/cloud-getting-started/9-data-import.png" alt="Another modal window with a large drag-and-drop area. It indicates a file named 'movies.json' will be uploaded" />
+  <img src="/assets/images/cloud-getting-started/8-file-upload.png" alt="上传方式选择弹窗，选择文件上传" />
 </Frame>
 
-Meilisearch Cloud will index your documents. This may take a moment. Click on "See index list" and wait. Once it is done, click on "Settings" to visit the index overview:
+Meilisearch Cloud 会提示上传数据集。为了跟随本教程，你可以直接下载这份示例电影数据集：<a href="https://www.meilisearch.com/docs/assets/datasets/movies.json" download="movies.json">movies.json</a>。下载到本地后，直接拖拽到上传区域，点击 "Import documents"：
 
 <Frame>
-  <img src="/assets/images/cloud-getting-started/10-index-list-filled.png" alt="A list of all indexes in this project. It shows a single index, `movies`, and indicates it contains over 30,000 documents" />
+  <img src="/assets/images/cloud-getting-started/9-data-import.png" alt="文件拖拽上传区域，已添加 movies.json" />
 </Frame>
 
-## Searching
-
-With all data uploaded and processed, the last step is to run a few test searches to confirm Meilisearch is running as expected.
-
-Click on the project name on the breadcrumb menu to return to the project overview:
+Meilisearch Cloud 将自动对这批文档进行解析和建索。这需要一点时间。点击 "See index list" 稍作等待，完成后点击 "Settings" 可以查看索引详情：
 
 <Frame>
-  <img src="/assets/images/cloud-getting-started/11-index-list-breadcrumb.png" alt="The index list page. A red arrow points at the breadcrumb menu" />
+  <img src="/assets/images/cloud-getting-started/10-index-list-filled.png" alt="索引列表页，展示 movies 索引已包含超过 3 万篇文档" />
 </Frame>
 
-Meilisearch Cloud comes with a search preview interface. Click on "Search preview" to access it:
+## 体验搜索
+
+数据上传和建立索引全部完成后，最后一步是执行几次测试搜索，验证 Meilisearch 是否正常运转。
+
+点击面包屑导航中的项目名称，返回项目概览页面：
 
 <Frame>
-  <img src="/assets/images/cloud-getting-started/12-project-page-url.png" alt="The project overview page. A red arrow points at a menu item named 'Search preview'" />
+  <img src="/assets/images/cloud-getting-started/11-index-list-breadcrumb.png" alt="点击面包屑导航返回项目概览" />
 </Frame>
 
-Finally, try searching for a few movies, like "Solaris":
+Meilisearch Cloud 自带即时搜索预览界面。点击菜单项中的 "Search preview" 进入：
 
 <Frame>
-  <img src="/assets/images/cloud-getting-started/13-search-preview.png" alt="The search preview interface, with 'solaris' written in the search bar" />
+  <img src="/assets/images/cloud-getting-started/12-project-page-url.png" alt="项目概览菜单，红色箭头指向 'Search preview'" />
 </Frame>
 
-If you can see the results coming in as you type, congratulations: you now know all the basic steps to using Meilisearch Cloud.
+在搜索框中随意输入电影名称，例如搜索 "Solaris"：
 
-## What's next
+<Frame>
+  <img src="/assets/images/cloud-getting-started/13-search-preview.png" alt="搜索预览界面，搜索框已输入 solaris 并实时展现结果" />
+</Frame>
 
-This tutorial taught you how to use Meilisearch Cloud's interface to create a project, add an index to it, and use the search preview interface.
+如果你能在键入字符的同时实时看到匹配电影流畅呈现，恭喜你：你已经掌握了使用 Meilisearch 的全部基本流程！
 
-In most real-life settings, you will be creating your own search interface and retrieving results through Meilisearch's API. To learn how to add documents and search using the command-line or an SDK in your preferred language, check out the [Meilisearch quick start](/resources/self_hosting/getting_started/quick_start).
+## 下一步
+
+本教程带你体验了在 Meilisearch Cloud 控制台界面中创建项目、添加索引并进行可视化搜索的全流程。
+
+在实际生产场景中，你通常需要构建自己的前端界面，并通过 Meilisearch 的 REST API 或编程语言 SDK 检索数据。如需了解如何在命令行使用 curl 或在代码中使用 SDK，欢迎参阅 [Meilisearch 自托管快速上手](/resources/self_hosting/getting_started/quick_start)。

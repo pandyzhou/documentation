@@ -1,210 +1,209 @@
 ---
-title: Features
-sidebarTitle: Features
-description: Explore all Meilisearch capabilities - index your content and make it accessible to humans and AI through search, conversational interfaces, and APIs.
+title: 功能特性全览
+sidebarTitle: 特性清单
+description: 探索 Meilisearch 的完整能力矩阵 —— 通过极速搜索、对话界面与统一 API，为你的数据赋能人类与 AI。
 ---
 
-Meilisearch indexes your content and makes it accessible to both humans and AI. Here's everything it can do.
+Meilisearch 为你的内容建立索引，并使其轻松服务于人类与 AI。以下是其全部核心功能特性概览。
 
-## Search capabilities
+## 搜索能力
 
-### Full-text search
+### 全文检索 (Full-text search)
 
-Lightning-fast keyword search with typo tolerance and customizable relevancy.
+自带拼写容错、响应极快且支持高度定制排序规则的关键词搜索。
 
-| Feature | Description |
-|---------|-------------|
-| Sub-50ms responses | Fast search regardless of dataset size |
-| [Typo tolerance](/capabilities/full_text_search/relevancy/typo_tolerance_settings) | Get relevant results even with spelling mistakes |
-| [Ranking rules](/capabilities/full_text_search/relevancy/ranking_rules) | 6 default rules plus custom ranking |
-| [Ranking score](/capabilities/full_text_search/relevancy/ranking_score) | Relevancy scores with optional detailed breakdown |
-| [Synonyms](/capabilities/full_text_search/relevancy/synonyms) | Define equivalent terms for better recall |
-| [Stop words](/reference/api/settings/get-stopwords) | Ignore common words like "the" or "and" |
-| [Distinct attribute](/capabilities/full_text_search/how_to/configure_distinct_attribute) | Deduplicate results by a specific field |
-| [Prefix search](/resources/internals/prefix) | Results update as users type |
-| [Matching strategy](/reference/api/search/search-with-post#body-matching-strategy) | Control how query terms are matched: `last`, `all`, or `frequency` |
-| [Phrase search](/reference/api/search/search-with-post) | Use double quotes to search for an exact phrase |
-| [Negative search](/reference/api/search/search-with-post) | Exclude terms from results using the minus operator |
-| [Placeholder search](/reference/api/search/search-with-post) | Return all results when the query is empty |
+| 功能特性 | 功能描述 |
+| :--- | :--- |
+| **50ms 内极速响应** | 无论数据集规模大小，始终保持亚 50 毫秒级的极速检索 |
+| **[错别字容错](/capabilities/full_text_search/relevancy/typo_tolerance_settings)** | 即使用户输入拼写错误，依然能准确召回相关结果 |
+| **[排序规则](/capabilities/full_text_search/relevancy/ranking_rules)** | 内置 6 大基础规则，并支持针对特定业务的自定义排序规则 |
+| **[相关度打分](/capabilities/full_text_search/relevancy/ranking_score)** | 返回综合相关度得分，并可选返回详细的打分拆解明细 |
+| **[同义词支持](/capabilities/full_text_search/relevancy/synonyms)** | 定义等价词组映射，显著提升搜索召回率 |
+| **[停用词过滤](/reference/api/settings/get-stopwords)** | 自动忽略如 "the"、"and" 或虚词等无实际搜索价值的高频词 |
+| **[结果去重字段](/capabilities/full_text_search/how_to/configure_distinct_attribute)** | 针对指定字段（Distinct Attribute）对搜索结果进行自动去重 |
+| **[前缀即搜](/resources/internals/prefix)** | 支持前缀匹配，随着用户键盘敲击实时更新搜索结果 |
+| **[匹配策略](/reference/api/search/search-with-post#body-matching-strategy)** | 灵活控制多词匹配方式：`last`（按顺序回退）、`all`（全包含）或 `frequency`（词频优先） |
+| **[精准短语搜索](/reference/api/search/search-with-post)** | 使用双引号精确检索包含连续完整短语的文档 |
+| **[负向词排除](/reference/api/search/search-with-post)** | 使用减号运算符（如 `-手机`）从结果中排除包含特定词的内容 |
+| **[占位符检索](/reference/api/search/search-with-post)** | 当搜索词为空时，返回排序后的全部文档（空搜索/默认推荐） |
 
-### Querying and result formatting
+### 查询与结果格式化
 
-| Feature | Description |
-|---------|-------------|
-| [Highlighting](/reference/api/search/search-with-post#highlight-tags) | Emphasize query matches in results with customizable tags |
-| [Cropping](/reference/api/search/search-with-post#body-attributes-to-crop) | Return only the relevant portion of long text fields |
-| [Matches position](/reference/api/search/search-with-post#body-show-matches-position) | Get byte positions and lengths of matched terms |
-| [Search cutoff](/reference/api/settings/get-searchcutoffms) | Set a maximum time limit for search queries |
-| [Tokenization](/capabilities/indexing/advanced/tokenization) | Customize how queries are broken into tokens, with custom separators and dictionaries |
+| 功能特性 | 功能描述 |
+| :--- | :--- |
+| **[关键词高亮](/reference/api/search/search-with-post#highlight-tags)** | 自动在结果中高亮命中的关键词，支持自定义 HTML 标签 |
+| **[文本智能裁剪](/reference/api/search/search-with-post#body-attributes-to-crop)** | 对超长文本字段自动提取包含命中词的前后相关上下文摘要 |
+| **[命中位置标记](/reference/api/search/search-with-post#body-show-matches-position)** | 返回命中词在原文中的字节偏移量（Byte Position）与长度 |
+| **[搜索熔断保护](/reference/api/settings/get-searchcutoffms)** | 设置单次搜索的最长超时软阈值，超时则返回已计算的最佳结果，防爆内存 |
+| **[深度分词定制](/capabilities/indexing/advanced/tokenization)** | 定制词条切分规则，支持自定义分隔符与用户词典 |
 
-### AI-powered search
+### AI 智能搜索 (AI-powered search)
 
-Semantic and hybrid search using vector embeddings for meaning-based results.
+基于向量嵌入（Vector Embeddings）的语义搜索与混合搜索，实现基于语境含义的智能理解。
 
-| Feature | Description |
-|---------|-------------|
-| [Hybrid search](/capabilities/hybrid_search/getting_started) | Combine keyword and semantic search |
-| [Embedders](/capabilities/hybrid_search/how_to/choose_an_embedder) | OpenAI, Hugging Face, Cohere, Mistral, Voyage, Gemini, Cloudflare, Ollama, and custom REST |
-| [Similar documents](/capabilities/personalization/getting_started/recommendations) | Find related content automatically |
-| [Image search](/capabilities/hybrid_search/how_to/image_search_with_multimodal) | Search images with multimodal embeddings |
-| [Multi-embedder](/reference/api/settings/get-embedders) | Multiple embedding models on the same document |
-| [User-provided vectors](/capabilities/hybrid_search/how_to/search_with_user_provided_embeddings) | Bring your own pre-generated embeddings |
+| 功能特性 | 功能描述 |
+| :--- | :--- |
+| **[混合搜索 (Hybrid Search)](/capabilities/hybrid_search/getting_started)** | 融合传统关键词搜索（BM25）与向量语义搜索的优势 |
+| **[主流向量嵌入器支持](/capabilities/hybrid_search/how_to/choose_an_embedder)** | 原生支持 OpenAI、Hugging Face、Cohere、Mistral、Voyage、Gemini、Cloudflare、Ollama 及自定义 REST API |
+| **[相似内容推荐](/capabilities/personalization/getting_started/recommendations)** | 传入文档 ID 自动查找语义最相似的其他内容 |
+| **[以图搜图/多模态](/capabilities/hybrid_search/how_to/image_search_with_multimodal)** | 基于多模态嵌入模型实现图像与文字之间的跨模态检索 |
+| **[多嵌入器共存](/reference/api/settings/get-embedders)** | 同一文档可绑定多个不同维度的向量嵌入模型 |
+| **[自带向量导入](/capabilities/hybrid_search/how_to/search_with_user_provided_embeddings)** | 支持直接写入用户在外部预先计算好的向量数据 |
 
-### Agentic search
+### 智能体与对话搜索 (Agentic search)
 
-Let AI agents and chat interfaces use your search data, with LLM integration.
+通过与大语言模型（LLM）深度集成，让 AI 智能体与聊天交互直接连接你的结构化数据。
 
-| Feature | Description |
-|---------|-------------|
-| [AI SDK](/getting_started/integrations/ai_sdk) | Give agents a Meilisearch search tool with the Vercel AI SDK |
-| [Chats API](/capabilities/agentic_search/advanced/chats_api) | Engine-managed conversational search via the direct `/chats` API |
-| [LLM providers](/capabilities/agentic_search/advanced/chats_api#workspace-settings) | OpenAI, Azure OpenAI, Mistral, and vLLM |
-| [Streaming responses](/reference/api/chats/request-a-chat-completion) | Stream chat responses in real time |
-| [Chat workspaces](/reference/api/chats/get-settings-of-a-chat-workspace) | Configure chat settings per index |
+| 功能特性 | 功能描述 |
+| :--- | :--- |
+| **[AI SDK 集成](/getting_started/integrations/ai_sdk)** | 结合 Vercel AI SDK，将 Meilisearch 作为标准 Tool 工具赋能智能体 |
+| **[原生 Chats API](/capabilities/agentic_search/advanced/chats_api)** | 引擎内置托管的对话搜索方案，直接调用 `/chats` 端点对话 |
+| **[大模型提供商](/capabilities/agentic_search/advanced/chats_api#workspace-settings)** | 支持接入 OpenAI、Azure OpenAI、Mistral 及自建 vLLM 服务 |
+| **[流式响应 (Streaming)](/reference/api/chats/request-a-chat-completion)** | 支持以 SSE 流式打字机效果实时输出对话回复 |
+| **[对话工作空间](/reference/api/chats/get-settings-of-a-chat-workspace)** | 按索引维度单独配置对话系统提示词、温度与检索策略 |
 
-### Personalization
+### 个性化 (Personalization)
 
-| Feature | Description |
-|---------|-------------|
-| [User preference ranking](/reference/api/search/search-with-post#body-personalize-one-of-1) | Re-rank results based on individual user preferences using AI embeddings |
-| Real-time adaptation | Adjust results as user preferences evolve |
+| 功能特性 | 功能描述 |
+| :--- | :--- |
+| **[用户偏好重排](/reference/api/search/search-with-post#body-personalize-one-of-1)** | 借助 AI 向量，根据个体用户的历史行为和偏好对搜索结果重新加权打分 |
+| **实时自适应** | 随着用户互动偏好的变化，动态微调搜索排序结果 |
 
-### Filtering and faceting
+### 过滤与多维分面 (Filtering and faceting)
 
-Refine search results with powerful filters and build faceted navigation.
+使用强大的过滤表达式细化结果，并搭建专业电商级的分面筛选导航。
 
-| Feature | Description |
-|---------|-------------|
-| [Filters](/capabilities/filtering_sorting_faceting/getting_started) | Filter by any attribute with complex expressions (AND/OR) |
-| [Facets](/capabilities/filtering_sorting_faceting/how_to/filter_with_facets) | Build faceted navigation interfaces |
-| [Facet types](/capabilities/filtering_sorting_faceting/overview) | AND/OR operators, numeric, boolean, and date facets |
-| [Sorting](/capabilities/filtering_sorting_faceting/how_to/sort_results) | Sort results by any field |
-| [Geo search](/capabilities/geo_search/getting_started) | Geo radius, bounding box, geo sorting, and distance calculation |
+| 功能特性 | 功能描述 |
+| :--- | :--- |
+| **[灵活过滤器](/capabilities/filtering_sorting_faceting/getting_started)** | 支持通过复杂的布尔表达式（AND/OR/NOT/IN/比较符）对任意字段筛选 |
+| **[分面导航](/capabilities/filtering_sorting_faceting/how_to/filter_with_facets)** | 毫秒级返回各大分类维度的数值分布统计，轻松搭建侧边筛选器 |
+| **[丰富分面类型](/capabilities/filtering_sorting_faceting/overview)** | 支持数值区间、布尔开关、标签集合与日期范围分面 |
+| **[多字段排序](/capabilities/filtering_sorting_faceting/how_to/sort_results)** | 任意指定升序或降序字段（如价格由低到高、时间由新到旧） |
+| **[地理位置搜索](/capabilities/geo_search/getting_started)** | 支持半径圆形范围（Radius）、矩形边界框（Bounding Box）、多边形过滤及距离排序 |
 
-### Multi-search and federation
+### 多索引搜索与联合搜索 (Multi-search and federation)
 
-Query multiple indexes in a single request for complex search scenarios.
+在单次 HTTP 请求中并发检索多个不同索引，应对复杂业务聚合场景。
 
-| Feature | Description |
-|---------|-------------|
-| [Multi-search](/capabilities/multi_search/overview) | Query multiple indexes at once |
-| [Federated search](/capabilities/multi_search/getting_started/federated_search) | Merge results from multiple sources with configurable weights |
+| 功能特性 | 功能描述 |
+| :--- | :--- |
+| **[多索引并发搜索](/capabilities/multi_search/overview)** | 单次请求并发查询多个独立索引（如同时查商品和用户） |
+| **[联合搜索 (Federation)](/capabilities/multi_search/getting_started/federated_search)** | 跨多个数据源归并结果，并支持按权重统一混排为一个总列表 |
 
-## Scaling
+## 规模化与集群能力
 
-Scale Meilisearch horizontally across multiple instances or optimize resource usage on a single node.
+跨多个实例水平扩展 Meilisearch，或在单个节点上压榨极限性能。
 
-| Feature | Description |
-|---------|-------------|
-| [Sharding](/resources/self_hosting/deployment/overview) | Distribute documents across multiple instances for horizontal scaling |
-| [Replication](/reference/api/management/get-network-topology) | Replicate data across multiple instances for high availability |
-| [Remote federation](/reference/api/management/get-network-topology) | Federate search across multiple Meilisearch instances |
-| Memory mapping | Efficient memory usage through memory-mapped storage |
+| 功能特性 | 功能描述 |
+| :--- | :--- |
+| **[数据分片 (Sharding)](/resources/self_hosting/deployment/overview)** | 将海量文档切片打散到多个实例上，实现水平吞吐扩容 |
+| **[高可用复制 (Replication)](/reference/api/management/get-network-topology)** | 跨多个节点同步数据备份，实现故障自动转移与高可用保障 |
+| **[远程联合搜索](/reference/api/management/get-network-topology)** | 跨不同物理网络下的 Meilisearch 节点进行跨集群联合检索 |
+| **内存映射存储** | 基于高效的内存映射（LMDB）机制，最大限度提高系统缓存命中率 |
 
-## Database
+## 存储引擎
 
-### Document database
+### 文档型存储 (Document database)
 
-| Feature | Description |
-|---------|-------------|
-| [Schemaless](/resources/internals/documents) | Index documents without a predefined schema |
-| [Documents](/resources/internals/documents) | Add, replace, update, and delete documents |
-| [Delete by filter](/reference/api/documents/delete-documents-by-filter) | Delete documents matching a filter expression |
-| [Update by function](/reference/api/documents/edit-documents-by-function) | Partial updates to documents using functions |
-| [Searchable attributes](/capabilities/full_text_search/how_to/configure_displayed_attributes) | Configure which fields are searchable and their priority |
-| [Displayed attributes](/capabilities/full_text_search/how_to/configure_displayed_attributes) | Control which fields are returned in results |
-| [Filterable attributes](/capabilities/filtering_sorting_faceting/getting_started) | Define which fields can be used in filters |
-| [Sortable attributes](/capabilities/filtering_sorting_faceting/how_to/sort_results) | Define which fields can be used for sorting |
-| [Index swap](/reference/api/indexes/swap-indexes) | Swap indexes to perform updates without downtime |
+| 功能特性 | 功能描述 |
+| :--- | :--- |
+| **[无模式限制 (Schemaless)](/resources/internals/documents)** | 无需预先定义表结构 Schema，随存随搜 |
+| **[全生命周期操作](/resources/internals/documents)** | 支持文档的新增、全量替换、部分更新与批量删除 |
+| **[按过滤条件批量删除](/reference/api/documents/delete-documents-by-filter)** | 一行命令删除所有符合 Filter 过滤条件的文档 |
+| **[函数式原子编辑](/reference/api/documents/edit-documents-by-function)** | 通过简单函数逻辑对一批文档的部分属性进行原子增减计算 |
+| **[可搜索属性设置](/capabilities/full_text_search/how_to/configure_displayed_attributes)** | 精细化指定哪些字段参与全文搜索，以及各字段的优先级权重 |
+| **[展示属性配置](/capabilities/full_text_search/how_to/configure_displayed_attributes)** | 控制返回结果中包含哪些字段，保护隐私字段不外泄 |
+| **[过滤与排序属性](/capabilities/filtering_sorting_faceting/getting_started)** | 声明哪些字段允许作为 Filter 或 Sort 目标，精准优化索引体积 |
+| **[零停机热索引切换 (Swap)](/reference/api/indexes/swap-indexes)** | 支持瞬间无缝对调两个索引的名称，实现无痛全量更新与版本重构 |
 
-### Vector database
+### 向量存储 (Vector database)
 
-| Feature | Description |
-|---------|-------------|
-| [Similar documents](/capabilities/personalization/getting_started/recommendations) | Find semantically similar documents using vector embeddings |
-| [Binary quantization](/reference/api/settings/get-embedders) | Compress vectors to save storage |
-| DiskANN | Disk-based approximate nearest neighbors for large datasets |
-| [Auto embedding](/reference/api/settings/get-embedders) | Automatically generate embeddings without manual input |
+| 功能特性 | 功能描述 |
+| :--- | :--- |
+| **[语义相似内容发现](/capabilities/personalization/getting_started/recommendations)** | 使用向量余弦相似度计算上下文关联内容 |
+| **[二进制量化 (Binary Quantization)](/reference/api/settings/get-embedders)** | 压缩高维向量体积达 10 倍以上，大幅节约内存与存储成本 |
+| **DiskANN 算法支持** | 专为大规模向量数据集打造的基于磁盘的近似最近邻搜索 |
+| **[自动生成嵌入](/reference/api/settings/get-embedders)** | 写入文档时自动在后台异步请求模型生成向量，无需手动干预 |
 
-## Platform features
+## 企业级与平台特性
 
-### Security
+### 安全与权限管理
 
-Protect your data with API keys and multi-tenant access control.
+保护数据安全，支持多租户细粒度访问控制。
 
-| Feature | Description |
-|---------|-------------|
-| [API keys](/resources/self_hosting/security/basic_security) | Admin, search, and chat key types for different access levels |
-| [Tenant tokens](/capabilities/security/overview) | Secure multi-tenant applications with document-level access control |
-| [Search rules](/capabilities/security/advanced/tenant_token_payload) | Restrict which documents users can access |
+| 功能特性 | 功能描述 |
+| :--- | :--- |
+| **[多级别 API 密钥](/resources/self_hosting/security/basic_security)** | 提供管理员（Admin）、只读搜索（Search）和对话专用密钥划分 |
+| **[租户令牌 (Tenant Tokens)](/capabilities/security/overview)** | 为多租户 SaaS 架构生成具备签名权限、文档级行级安全隔离的短时临时令牌 |
+| **[搜索规则与可见性](/capabilities/security/advanced/tenant_token_payload)** | 在服务端强校验限制用户可以检索和查阅的文档集合 |
 
-### Tasks and monitoring
+### 异步任务与运维监控
 
-Monitor indexing operations and receive notifications.
+监控索引状态与任务执行进度，接收关键事件通知。
 
-| Feature | Description |
-|---------|-------------|
-| [Task management](/capabilities/indexing/tasks_and_batches/monitor_tasks) | Track and manage async operations |
-| [Batches](/capabilities/indexing/tasks_and_batches/async_operations#task-batches) | Automatic task batching for efficient processing |
-| [Webhooks](/resources/self_hosting/webhooks) | Get notified when tasks complete |
-| Diff indexing | Only index differences between datasets |
+| 功能特性 | 功能描述 |
+| :--- | :--- |
+| **[任务队列管理](/capabilities/indexing/tasks_and_batches/monitor_tasks)** | 全程跟踪、查询与取消后台异步排队的写入操作 |
+| **[智能任务合并 (Batches)](/capabilities/indexing/tasks_and_batches/async_operations#task-batches)** | 自动合并连续的文档写入任务，成倍提升高并发建索性能 |
+| **[Webhooks 通知](/resources/self_hosting/webhooks)** | 异步任务完成或发生错误时自动向指定服务器回调通知 |
+| **增量差异化建索** | 自动比对数据差异，仅对发生变动的字段和文档重新建立索引 |
 
-### Analytics (Cloud)
+### 搜索行为分析 (Cloud 专享)
 
-Track search behavior and optimize relevancy with built-in analytics.
+追踪真实用户的检索习惯，依靠数据洞察调优排序规则。
 
-| Feature | Description |
-|---------|-------------|
-| [Search analytics](/capabilities/analytics/getting_started) | Monitor search patterns, no-result rates, and top queries |
-| [Click tracking](/capabilities/analytics/how_to/bind_events_to_user) | Track which results users engage with |
-| [Metrics reference](/capabilities/analytics/advanced/analytics_metrics) | Click-through rate, conversion rate, average click position |
-| Monitoring | Search latency, indexing latency, bandwidth, and API health |
+| 功能特性 | 功能描述 |
+| :--- | :--- |
+| **[搜索行为分析](/capabilities/analytics/getting_started)** | 监控热门搜索词、搜索趋势分布与“无结果”高频冷词 |
+| **[点击事件追踪](/capabilities/analytics/how_to/bind_events_to_user)** | 跟踪用户在搜索后实际点击浏览了哪几条内容 |
+| **[关键业务指标看板](/capabilities/analytics/advanced/analytics_metrics)** | 点击率（CTR）、转化率（CVR）、首条点击平均位次等核心指标 |
+| **全方位监控告警** | 检索延迟 P99/P95 曲线、建索延迟、带宽消耗与 API 状态 |
 
-### Pagination
+### 灵活分页支持
 
-| Feature | Description |
-|---------|-------------|
-| [Pagination](/capabilities/full_text_search/how_to/paginate_search_results) | Offset/limit and cursor-based pagination |
+| 功能特性 | 功能描述 |
+| :--- | :--- |
+| **[分页模式](/capabilities/full_text_search/how_to/paginate_search_results)** | 传统偏移量分页（Offset/Limit）与高性能游标分页（Cursor）全面支持 |
 
-## Language support
+## 语言与本地化支持
 
-Meilisearch provides optimized support for many languages:
+Meilisearch 对全球多种语言文字体系提供了深度专项分词与规范化优化：
 
-- **Latin-based languages**: English, French, Spanish, German, Italian, Portuguese, etc.
-- **CJK**: Chinese, Japanese, Korean with specialized tokenization
-- **RTL languages**: Hebrew, Arabic
-- **Others**: Thai, Greek, and more
+- **拉丁语系**：英语、法语、西班牙语、德语、意大利语、葡萄牙语等。
+- **中日韩 (CJK)**：针对**中文**、日文、韩文进行了专门的切词与无空格断词优化。
+- **从右向左阅读语言 (RTL)**：希伯来语、阿拉伯语。
+- **其他语种**：泰语、希腊语等。
 
-[See full language support →](/resources/help/language)
+[查看全部受支持语言与分词详情 →](/resources/help/language)
 
-## Cloud features
+## Meilisearch Cloud 托管专属服务
 
-These features are available exclusively on Meilisearch Cloud.
+以下功能为官方全托管云平台 Meilisearch Cloud 的专属增值能力：
 
-| Feature | Description |
-|---------|-------------|
-| Crawler | Crawl web pages with JS rendering, DocSearch mode, and schema extraction |
-| [Search preview](/resources/self_hosting/getting_started/search_preview) | Visual search interface with filtering, sorting, and document CRUD |
-| [Teams](/capabilities/platform/teams/overview) | Organize projects and members into team workspaces |
-| [Enterprise SSO/SCIM](/resources/self_hosting/enterprise_edition) | SAML 2.0 SSO and automated user provisioning |
-| Autoscale disk | Automatically scale storage as data grows |
-| Automatic backups | Scheduled backups for data safety |
-| One-click upgrade | Upgrade Meilisearch version with a single click |
-| Up to 99.999% SLA | Industry-leading service level agreement |
+| 功能特性 | 功能描述 |
+| :--- | :--- |
+| **网页智能爬虫 (Crawler)** | 具备 Headless 浏览器 JS 渲染能力的网页爬虫，一键抓取并建索 |
+| **[可视化搜索工作台](/resources/self_hosting/getting_started/search_preview)** | 包含高级筛选、排序与文档交互式 CRUD 的全功能 Web 控制台 |
+| **[团队协同工作区](/capabilities/platform/teams/overview)** | 多项目管理、团队成员协作与细粒度角色权限 |
+| **[企业级单点登录 (SSO/SCIM)](/resources/self_hosting/enterprise_edition)** | SAML 2.0 企业身份源对接与自动化用户配置 |
+| **自动磁盘扩容** | 随着索引体积增长全自动在线扩容，永不断服 |
+| **定时自动备份** | 每日全量与快照备份，确保灾难场景秒级恢复 |
+| **一键在线版本升级** | 点击一次按钮即可在几秒内升级引擎底层版本 |
+| **高达 99.999% SLA** | 业界领先的高可用企业服务级别协议承诺 |
 
-## Self-hosting
+## 自托管部署特性
 
-| Feature | Description |
-|---------|-------------|
-| [Configuration](/resources/self_hosting/configuration/overview) | CLI flags and environment variables |
-| [Snapshots](/resources/self_hosting/data_backup/snapshots) | Full binary copies for fast restoration |
-| [Dumps](/resources/self_hosting/data_backup/dumps) | Portable JSON exports for migration |
-| [Master key](/resources/self_hosting/security/basic_security) | Secure your instance with a master key |
+| 功能特性 | 功能描述 |
+| :--- | :--- |
+| **[丰富配置参数](/resources/self_hosting/configuration/overview)** | 完整支持命令行启动参数（Flags）与环境变量覆盖 |
+| **[快照备份 (Snapshots)](/resources/self_hosting/data_backup/snapshots)** | 极速全量二进制内存映射镜像，用于秒级重启与容灾恢复 |
+| **[转储迁移包 (Dumps)](/resources/self_hosting/data_backup/dumps)** | 跨架构、跨版本的便携式 JSON 数据导出格式，用于系统大版本无缝升级 |
+| **[主密钥安全保护](/resources/self_hosting/security/basic_security)** | 基于 Master Key 派生出安全的租户和读写子密钥 |
 
-## Integration options
+## 语言与框架 SDK 生态
 
-| Option | Description |
-|--------|-------------|
-| [REST API](/reference/api/openapi) | Direct HTTP integration |
-| [Official SDKs](/resources/help/sdks) | 10+ language SDKs |
-| [Frameworks](/resources/help/sdks#framework-sdks) | Laravel, Rails, Strapi, Symfony |
+| 接入方式 | 说明 |
+| :--- | :--- |
+| **[REST API 规范](/reference/api/openapi)** | 跨语言通用的标准 HTTP RESTful 协议接口 |
+| **[官方支持 SDK](/resources/help/sdks)** | 覆盖 JavaScript/TypeScript、Python、Go、Rust、Java、PHP、Ruby、C#、Dart、Swift 等 10+ 种主流语言 |
+| **[主流 Web 框架集成](/resources/help/sdks#framework-sdks)** | Laravel (Scout)、Ruby on Rails、Strapi、Symfony 等开箱即用插件 |
