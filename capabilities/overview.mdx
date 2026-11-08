@@ -1,46 +1,46 @@
 ---
-title: Capabilities overview
-sidebarTitle: Overview
-description: Explore all Meilisearch capabilities, from full-text and semantic search to filtering, curation, analytics, and multi-tenancy.
+title: 核心功能概览
+sidebarTitle: 功能概览
+description: 探索 Meilisearch 强大的核心能力矩阵：从极速全文检索与语义搜索，到多维过滤、搜索运营规则、分析指标与多租户安全。
 ---
 
-Meilisearch provides a comprehensive set of search and data management capabilities. Each capability is documented with an overview, getting started guide, how-to guides, and advanced topics.
+Meilisearch 提供了一整套功能完备的搜索引擎与数据管理能力体系。每个功能模块均配备了概念概览、快速入门、分步操作指南（How-to）以及进阶深度专题。
 
 <CardGroup cols={2}>
-  <Card title="Full-text search" icon="magnifying-glass" href="/capabilities/full_text_search/overview">
-    Fast, typo-tolerant keyword search with multi-criteria ranking. The core of Meilisearch.
+  <Card title="全文检索 (Full-text search)" icon="magnifying-glass" href="/capabilities/full_text_search/overview">
+    毫秒级响应、自带错别字容错与多维度打分排序规则的关键词搜索，Meilisearch 的立身之本。
   </Card>
-  <Card title="Hybrid and semantic search" icon="brain" href="/capabilities/hybrid_search/overview">
-    Combine keyword matching with AI-powered vector search for results that match both terms and meaning.
+  <Card title="混合检索与语义搜索" icon="brain" href="/capabilities/hybrid_search/overview">
+    将传统关键词匹配与 AI 向量嵌入深度融合，兼顾字面准确度与语义深度。
   </Card>
-  <Card title="Geo search" icon="location-dot" href="/capabilities/geo_search/overview">
-    Filter and sort results by geographic location using radius, bounding box, or polygon.
+  <Card title="地理位置搜索 (Geo search)" icon="location-dot" href="/capabilities/geo_search/overview">
+    通过半径圆形范围、矩形边界框或多边形区域对空间数据进行过滤与距离排序。
   </Card>
-  <Card title="Agentic search" icon="comments" href="/capabilities/agentic_search/overview">
-    Let users and AI agents ask questions in natural language and get answers grounded in your data.
+  <Card title="智能体与对话搜索" icon="comments" href="/capabilities/agentic_search/overview">
+    让最终用户与 AI Agent 能够使用自然语言交互提问，并获得严格锚定在私有数据中的可信回答。
   </Card>
-  <Card title="Multi-search" icon="layer-group" href="/capabilities/multi_search/overview">
-    Query multiple indexes in one request with separate or merged (federated) results.
+  <Card title="多索引与联合搜索" icon="layer-group" href="/capabilities/multi_search/overview">
+    在单次网络请求中并发检索多个不同索引，支持独立返回或自动联合混排（Federated Search）。
   </Card>
-  <Card title="Filtering, sorting, and faceting" icon="filter" href="/capabilities/filtering_sorting_faceting/overview">
-    Narrow, order, and categorize results with filters, sort rules, and faceted navigation.
+  <Card title="过滤、排序与分面筛选" icon="filter" href="/capabilities/filtering_sorting_faceting/overview">
+    使用强大的布尔过滤表达式收窄结果范围，支持多维字段排序与电商级分面统计导航。
   </Card>
-  <Card title="Search rules" icon="thumbtack" href="/capabilities/search_rules/overview">
-    Curate search results by pinning selected documents when query- or time-based conditions match.
+  <Card title="搜索规则 (Search rules)" icon="thumbtack" href="/capabilities/search_rules/overview">
+    精细化运营搜索结果：在命中特定查询词或时间段时，置顶或人工干预指定文档。
   </Card>
-  <Card title="Personalization" icon="user" href="/capabilities/personalization/overview">
-    Re-rank search results based on user context and behavior for tailored experiences.
+  <Card title="个性化与推荐" icon="user" href="/capabilities/personalization/overview">
+    基于用户上下文环境与实时行为，对搜索结果进行智能重排，打造千人千面的体验。
   </Card>
-  <Card title="Analytics" icon="chart-line" href="/capabilities/analytics/overview">
-    Track searches, clicks, and conversions to measure and improve search quality.
+  <Card title="搜索分析与监控" icon="chart-line" href="/capabilities/analytics/overview">
+    全程追踪搜索词频、用户点击与转化漏斗，用真实业务数据持续量化和调优搜索体验。
   </Card>
-  <Card title="Security and tenant tokens" icon="shield-halved" href="/capabilities/security/overview">
-    Control access with API keys and tenant tokens for multi-tenant applications.
+  <Card title="安全与租户令牌" icon="shield-halved" href="/capabilities/security/overview">
+    基于多级 API 密钥和轻量租户令牌，为多租户 SaaS 架构提供文档级权限安全隔离。
   </Card>
-  <Card title="Teams" icon="users" href="/capabilities/platform/teams/overview">
-    Manage collaborators and roles in Meilisearch Cloud projects.
+  <Card title="团队协同管理" icon="users" href="/capabilities/platform/teams/overview">
+    在 Meilisearch Cloud 中便捷管理团队项目成员与协作权限。
   </Card>
-  <Card title="Indexing" icon="database" href="/capabilities/indexing/overview">
-    Add, update, and manage documents with async task processing, foreign keys, and more.
+  <Card title="数据索引与批处理" icon="database" href="/capabilities/indexing/overview">
+    通过异步任务队列导入、更新和维护文档，支持外键关联及高并发批处理。
   </Card>
 </CardGroup>

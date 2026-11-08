@@ -1,16 +1,16 @@
 ---
-title: Attribute ranking order
-sidebarTitle: Attribute ranking order
-description: This article explains how the order of attributes in the `searchableAttributes` array impacts search result relevancy.
+title: 字段权重顺序 (Attribute ranking order)
+sidebarTitle: 字段权重顺序
+description: 深入解析 searchableAttributes 数组中字段的声明先后顺序如何直接影响搜索结果的相关度排位。
 ---
 
-In most datasets, some fields are more relevant to search than others. A `title`, for example, might be more meaningful to a movie search than its `overview` or its `release_date`.
+在绝大多数真实业务数据集中，不同字段对搜索的重要程度是不一样的。例如在电影检索中，匹配到 `title`（片名）的价值显然远高于匹配到 `overview`（剧情概述）或 `release_date`（上映年份）。
 
-When `searchableAttributes` is using its default value, `[*]`, all fields carry the same weight.
+当 `searchableAttributes` 采用默认值 `["*"]` 时，所有字段平分秋色，享有完全相同的相关度权重。
 
-If you manually configure [the searchable attributes list](/capabilities/full_text_search/how_to/configure_searchable_attributes), attributes that appear early in the array are more important when calculating search result relevancy.
+如果你手动配置了[可搜索字段列表](/capabilities/full_text_search/how_to/configure_searchable_attributes)，**数组中越早出现的字段，在计算搜索相关度时的权威权重就越高**。
 
-## Example
+## 典型配置示例
 
 <CodeGroup>
 
@@ -24,11 +24,11 @@ If you manually configure [the searchable attributes list](/capabilities/full_te
 
 </CodeGroup>
 
-With the above attribute ranking order, matching words found in the `title` field would have a higher impact on relevancy than the same words found in `overview` or `release_date`. If you searched for "1984", for example, results like Michael Radford's film "1984" would be ranked higher than movies released in the year 1984.
+在上述字段权重配置下，在 `title` 字段中发现的关键词，其贡献的权重将显著高于在 `overview` 或 `release_date` 中发现的相同词汇。例如用户搜索 "1984" 时，电影片名为《1984》的记录，排位会显著优于那些仅仅是在 1984 年上映但标题无关的其他电影。
 
-## Attribute ranking order and nested objects
+## 嵌套对象中的字段权重层级
 
-By default, nested fields share the same weight as their parent attribute. Use dot notation to set different weights for attributes in nested objects:
+默认情况下，嵌套对象中的子字段会继承其父属性的权重。你可以使用**点号语法（Dot notation）**为嵌套对象内部的不同子字段分配不同的权重等级：
 
 <CodeGroup>
 
@@ -43,10 +43,8 @@ By default, nested fields share the same weight as their parent attribute. Use d
 
 </CodeGroup>
 
-With the above ranking order, `review.critic` becomes more important than its sibling `review.user` when calculating a document's ranking score.
+按照上述排序，在计算打分时，专业影评人评价 `review.critic` 的重要性将优先于普通用户评价 `review.user`。
 
 <Note>
-The `attributeRank` and `wordPosition` rules' positions in [`rankingRules`](/capabilities/full_text_search/relevancy/ranking_rules) determine how the results are sorted. Meaning, **if `attributeRank` is at the bottom of the ranking rules list, it will have almost no impact on your search results.**
-
-The legacy `attribute` rule combines both `attributeRank` and `wordPosition`. If you use `attribute`, its position determines the impact of both attribute ranking order and position within attributes.
+`attributeRank` 与 `wordPosition` 两项规则在全局 [`rankingRules`](/capabilities/full_text_search/relevancy/ranking_rules) 数组中的排位，最终决定了它们到底有多大话语权。也就是说，**如果 `attributeRank` 被你放在了排序规则的最末尾，那么即使你在这里费尽心机调好了字段顺序，它对最终搜索排位也几乎产生不了任何实质影响。**
 </Note>

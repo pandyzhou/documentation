@@ -1,16 +1,16 @@
 ---
-title: Your first search
-sidebarTitle: Your first search
-description: Perform your first full-text search query in Meilisearch and understand the response format.
+title: 执行你的第一次搜索
+sidebarTitle: 第一次搜索
+description: 在 Meilisearch 中执行你的第一个全文检索请求，并深入理解返回的 JSON 响应格式。
 ---
 
-Full-text search is the core feature of Meilisearch. Once you have documents in an index, you can search them with a simple query and get relevant results in milliseconds.
+全文检索是 Meilisearch 最核心的灵魂特性。一旦索引中写入了文档，你只需发送一个简单的查询语句，就能在数毫秒内获得高度相关的结果。
 
-If you haven't added documents yet, follow the [indexing getting started guide](/capabilities/indexing/getting_started) first.
+如果你还没有添加任何文档，请先参阅[数据索引入门指南](/capabilities/indexing/getting_started)。
 
-## Perform a search
+## 发起搜索请求
 
-Send a search request to your index with the `q` parameter:
+通过向索引的 `/search` 端点发送带 `q`（Query）参数的请求：
 
 <CodeGroup>
 
@@ -25,7 +25,7 @@ curl -X POST 'MEILISEARCH_URL/indexes/movies/search' \
 
 </CodeGroup>
 
-Meilisearch returns a JSON response with matching documents:
+Meilisearch 会返回包含匹配文档的 JSON 响应：
 
 <CodeGroup>
 
@@ -55,20 +55,20 @@ Meilisearch returns a JSON response with matching documents:
 
 </CodeGroup>
 
-## Understanding the response
+## 响应字段详解
 
-| Field | Description |
-|-------|-------------|
-| `hits` | Array of matching documents, ordered by relevance |
-| `query` | The search query you sent |
-| `processingTimeMs` | How long the search took in milliseconds |
-| `limit` | Maximum number of results returned (default: 20) |
-| `offset` | Number of results skipped (for pagination) |
-| `estimatedTotalHits` | Estimated total number of matching documents |
+| 响应字段 | 字段说明 |
+| :--- | :--- |
+| `hits` | 匹配到的文档数组，已默认按相关度从高到低排序 |
+| `query` | 实际接收并执行的搜索词 |
+| `processingTimeMs` | 搜索引擎底层完成检索所消耗的时间（毫秒数） |
+| `limit` | 本次请求返回的最大文档数（默认：20） |
+| `offset` | 翻页跳过的文档数量（用于分页定位） |
+| `estimatedTotalHits` | 预估符合查询条件的命中总条数 |
 
-## Search with typos
+## 错别字容错体验
 
-Meilisearch handles typos automatically. A search for "galxy" or "galaxi" still returns results for "galaxy":
+Meilisearch 全自动处理打字错误。即使用户搜 "galxy" 或 "galaxi"，依然能够精准命中 "galaxy"：
 
 <CodeGroup>
 
@@ -83,11 +83,11 @@ curl -X POST 'MEILISEARCH_URL/indexes/movies/search' \
 
 </CodeGroup>
 
-This works because Meilisearch uses [typo tolerance](/capabilities/full_text_search/relevancy/typo_tolerance_settings) to match words even when they contain spelling mistakes.
+这归功于 Meilisearch 内置的[错别字容错算法](/capabilities/full_text_search/relevancy/typo_tolerance_settings)，它可以在极小的时间损耗下计算编辑距离，完成近似词召回。
 
-## Search with multiple words
+## 多词组合搜索
 
-When you search with multiple words, Meilisearch finds documents containing any of those words and ranks them by how many words match:
+当搜索词包含多个单词时，Meilisearch 会检索包含其中任一词汇的文档，并根据“命中的词汇数量多少”自动加权排序：
 
 <CodeGroup>
 
@@ -102,11 +102,11 @@ curl -X POST 'MEILISEARCH_URL/indexes/movies/search' \
 
 </CodeGroup>
 
-Documents containing both "dark" and "knight" rank higher than documents containing only one of those words. You can control this behavior with the [matching strategy](/capabilities/full_text_search/how_to/use_matching_strategy).
+同时包含 "dark" 和 "knight" 两个词的文档，排序权重会显著高于仅包含其中一个词的文档。你可以通过[匹配策略 (Matching Strategy)](/capabilities/full_text_search/how_to/use_matching_strategy)对这一行为进行精细控制。
 
-## Limit and paginate results
+## 数量限制与分页控制
 
-Control how many results you get back with `limit` and `offset`:
+通过 `limit` 和 `offset` 精确控制返回数量和分页位置：
 
 <CodeGroup>
 
@@ -123,21 +123,21 @@ curl -X POST 'MEILISEARCH_URL/indexes/movies/search' \
 
 </CodeGroup>
 
-This returns 5 results starting from the 11th match.
+以上请求将跳过前 10 条结果，从第 11 条开始提取 5 条文档返回。
 
-## Next steps
+## 下一步
 
 <CardGroup cols={2}>
-  <Card title="Highlight results" href="/capabilities/full_text_search/how_to/highlight_search_results">
-    Show users where their query matched in each result
+  <Card title="高亮命中结果" href="/capabilities/full_text_search/how_to/highlight_search_results">
+    在结果中高亮突出显示用户输入的关键词
   </Card>
-  <Card title="Phrase search" href="/capabilities/full_text_search/getting_started/phrase_search">
-    Search for exact phrases with quotes
+  <Card title="精确短语搜索" href="/capabilities/full_text_search/getting_started/phrase_search">
+    使用双引号严格检索连续短语
   </Card>
-  <Card title="Add filters" href="/capabilities/filtering_sorting_faceting/getting_started">
-    Narrow results with filters and sorting
+  <Card title="添加过滤器" href="/capabilities/filtering_sorting_faceting/getting_started">
+    结合布尔过滤与排序规则精确定位内容
   </Card>
-  <Card title="Relevancy" href="/capabilities/full_text_search/relevancy/relevancy">
-    Understand and customize how results are ranked
+  <Card title="深入相关度排序" href="/capabilities/full_text_search/relevancy/relevancy">
+    理解并定制搜索打分排序机制
   </Card>
 </CardGroup>

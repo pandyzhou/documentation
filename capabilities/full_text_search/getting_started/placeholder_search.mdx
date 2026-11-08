@@ -1,21 +1,22 @@
 ---
-title: Placeholder search
-description: Placeholder search returns results when users submit an empty query, allowing you to display default or trending content before the user types anything.
+title: 占位符搜索 / 空搜索 (Placeholder search)
+sidebarTitle: 占位符搜索
+description: 当用户提交空查询词时返回预设结果，用于在用户键入任何字符前展示默认推荐或热门趋势内容。
 ---
 
-Placeholder search is a search request where the query string `q` is empty or missing. Instead of returning no results, Meilisearch returns documents from the index, respecting all other search parameters such as [filters](/capabilities/filtering_sorting_faceting/getting_started), [sorting](/capabilities/filtering_sorting_faceting/how_to/sort_results), and [facets](/capabilities/filtering_sorting_faceting/how_to/filter_with_facets).
+占位符搜索（Placeholder search）是指在搜索请求中查询字符串 `q` 为空或缺省的检索模式。此时 Meilisearch 不会返回空列表，而是从索引中提取文档返回，同时严格遵守所有其他搜索参数，如[过滤器 (Filters)](/capabilities/filtering_sorting_faceting/getting_started)、[排序 (Sorting)](/capabilities/filtering_sorting_faceting/how_to/sort_results) 以及[分面统计 (Facets)](/capabilities/filtering_sorting_faceting/how_to/filter_with_facets)。
 
-This is useful when you want to display default content on a landing page, show trending items, or let users browse results before they start typing.
+这在以下场景尤其实用：在落地页展示默认内容、展示热门商品，或允许用户在开始打字前直接浏览全部数据。
 
-## How it works
+## 工作原理
 
-When Meilisearch receives a search request with an empty query, it skips the text-matching phase entirely. Documents are returned in the order determined by the active [ranking rules](/capabilities/full_text_search/relevancy/ranking_rules), with [custom ranking rules](/capabilities/full_text_search/relevancy/custom_ranking_rules) and the `sort` parameter playing the most significant role.
+当 Meilisearch 收到空查询的搜索请求时，它会彻底跳过文本分词匹配阶段。文档的排列顺序完全由处于生效状态的[排序规则 (Ranking rules)](/capabilities/full_text_search/relevancy/ranking_rules)决定，其中[自定义排序规则](/capabilities/full_text_search/relevancy/custom_ranking_rules)与请求中的 `sort` 参数起主导作用。
 
-Since no query terms are involved, text-based ranking rules like `words`, `typo`, `proximity`, and `exactness` have no effect. Only `sort` and custom ranking rules influence the order of results.
+由于不涉及任何关键词，基于文本字面的排序规则（如 `words` 词频、`typo` 错字、`proximity` 词距以及 `exactness` 精确度）会自动失效，仅有 `sort` 与自定义规则会影响最终结果的排位。
 
-## Basic example
+## 基础示例
 
-Send a search request with an empty query string:
+发送一个查询词为空字符串的搜索请求：
 
 <CodeGroup>
 
@@ -31,11 +32,11 @@ curl \
 
 </CodeGroup>
 
-Meilisearch returns documents from the `movies` index in the default order.
+Meilisearch 会按默认顺序直接返回 `movies` 索引中的前排文档。
 
-## Placeholder search with filters and sorting
+## 结合过滤与排序
 
-Placeholder search becomes more powerful when combined with filters and sorting. For example, you can show the highest-rated movies in a specific genre:
+当占位符搜索与过滤、排序结合时，表现尤为出众。例如直接展示特定分类下评分最高的前排电影：
 
 <CodeGroup>
 
@@ -53,11 +54,11 @@ curl \
 
 </CodeGroup>
 
-This returns all action movies sorted by rating, without requiring the user to type anything.
+无需用户输入任何搜索词，直接返回按评分降序排列的所有动作电影。
 
-## Placeholder search with facets
+## 结合分面统计
 
-You can also request facet distributions alongside a placeholder search to build category navigation:
+你还可以在占位符搜索中同时请求分面分布统计，用于在页面初次加载时渲染分类侧边栏：
 
 <CodeGroup>
 
@@ -74,18 +75,18 @@ curl \
 
 </CodeGroup>
 
-The response includes a `facetDistribution` object showing the count of documents for each facet value.
+响应体中将包含 `facetDistribution` 对象，展示各个分类和年份下现存的文档总数。
 
-## Common use cases
+## 常见业务应用场景
 
-- **Landing pages**: Show popular or recent items when a user first visits your search page
-- **Category browsing**: Combine an empty query with filters to let users explore content by category
-- **Default recommendations**: Sort by a custom ranking attribute like `popularity` to surface trending content
-- **Faceted navigation**: Display facet counts to help users narrow down results before searching
+- **首页推荐**：在用户刚进入搜索页面、尚未输入任何内容时，展示热门内容或最新发布
+- **分类导航浏览**：将空搜索与分类 Filter 结合，把搜索界面当作常规分类列表页使用
+- **默认趋势推荐**：按自定义排序字段（如 `popularity` 热度）降序，自动呈现热搜榜单
+- **分面聚合导航**：展示各个类别的文档数量徽标，引导用户点击筛选
 
-## Pagination
+## 分页控制
 
-Placeholder search supports the same pagination parameters as regular search. Use `offset` and `limit` (or `page` and `hitsPerPage`) to paginate through results:
+占位符搜索与普通搜索支持完全相同的分页参数。使用 `offset` 与 `limit`（或 `page` 与 `hitsPerPage`）进行平滑翻页：
 
 <CodeGroup>
 
@@ -104,5 +105,5 @@ curl \
 </CodeGroup>
 
 <Info>
-For a complete list of search parameters, see the [search API reference](/reference/api/search/search-with-post).
+如需查看完整的搜索参数列表，请参阅[搜索 API 参考手册](/reference/api/search/search-with-post)。
 </Info>

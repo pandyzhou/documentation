@@ -1,67 +1,35 @@
 ---
-title: Synonyms
-sidebarTitle: Synonyms
-description: Use Meilisearch synonyms to indicate sets of query terms which should be considered equivalent during search.
+title: 同义词映射 (Synonyms)
+sidebarTitle: 同义词
+description: 使用 Meilisearch 同义词机制指定一组等价查询词，显著提升搜索召回率与多用词场景的体验。
 ---
 
 import CodeSamplesSynonymsGuide1 from '/snippets/generated-code-samples/code_samples_synonyms_guide_1.mdx';
 
-If multiple words have an equivalent meaning in your dataset, you can [create a list of synonyms](/reference/api/settings/update-synonyms). This will make your search results more relevant.
+如果你的数据集中存在表达同一含义的不同词汇，你可以[配置同义词列表 (Synonyms)](/reference/api/settings/update-synonyms)，让用户无论使用哪个习惯用语都能搜到相同的内容。
 
-Words set as synonyms won't always return the same results. With the default settings, the `movies` dataset should return 547 results for `great` and 66 for `fantastic`. Let's set them as synonyms:
+在默认设置下，电影数据集搜 `great` 得到 547 条结果，而搜 `fantastic` 只有 66 条。我们将它们关联为同义词：
 
 <CodeSamplesSynonymsGuide1 />
 
-With the new settings, searching for `great` returns 595 results and `fantastic` returns 423 results. This is due to various factors like [typos](/capabilities/full_text_search/relevancy/typo_tolerance_settings#minwordsizefortypos) and [splitting the query](/resources/internals/concat#split-queries) to find relevant documents. The search for `great` will allow only one typo (for example, `create`) and take into account all variations of `great` (for instance, `greatest`) along with `fantastic`.
+完成配置后，搜索 `great` 可获得 595 条结果，搜索 `fantastic` 也扩增至 423 条。
 
-<Warning>
-The number of search results may vary depending on changes to the `movies` dataset.
-</Warning>
+## 文本规范化处理 (Normalization)
 
-## Normalization
+在建索流水线中，同义词会受到分词器配置（停用词、分隔符等）的统一规范化处理。请确保同义词中不包含分隔符符号（如 `&`），以免在实际匹配中被当作符号过滤掉。
 
-During the indexing process, all synonyms are processed by using the index settings, i.e., stop words, separator and non-separator tokens. Always make sure no synonyms are treated as separator tokens (e.g., `&`), or they'll be ignored during the search.
+## 单向同义词 (One-way association)
 
-### Example
-
-Consider a situation where `Résumé` and `CV` are set as synonyms.
-
-<CodeGroup>
-
-```json
-{
-  "Résumé": [
-    "CV"
-  ],
-  "CV": [
-    "Résumé"
-  ]
-}
-```
-
-</CodeGroup>
-
-A search for `cv` would return any documents containing `cv` or `CV`, in addition to any that contain `Résumé`, `resumé`, `resume`, etc., unaffected by case or accent marks.
-
-## One-way association
-
-Use this when you want one word to be synonymous with another, but not the other way around.
-
-<CodeGroup>
+用于将词 A 关联到词 B，但**不反向关联**。
 
 ```
 phone => iphone
 ```
 
-</CodeGroup>
+- 用户搜 `phone` 时，会同时召回包含 `iphone` 的文档（因为搜手机时包含苹果手机很合理）；
+- 但用户搜 `iphone` 时，**不会**召回只写了普通 `phone`（安卓或其他手机）的文档。
 
-A search for `phone` will return documents containing `iphone` as if they contained the word `phone`.
-
-However, if you search for `iphone`, documents containing `phone` will be ranked lower in the results due to [the typo rule](/capabilities/full_text_search/relevancy/ranking_rules).
-
-### Example
-
-To create a one-way synonym list, this is the JSON syntax that should be [added to the settings](/reference/api/settings/update-synonyms).
+JSON 配置格式如下：
 
 <CodeGroup>
 
@@ -75,48 +43,22 @@ To create a one-way synonym list, this is the JSON syntax that should be [added 
 
 </CodeGroup>
 
-## Relevancy
+## 排序优先级：精确词始终优于同义词
 
-**The exact search query will always take precedence over its synonyms.** The `exactness` ranking rule favors exact words over synonyms when ranking search results.
+**用户输入的真实精确词永远享有最高优先级。** `exactness` 排序规则会确保：包含用户真正输入的那个词的文档排在前面，而仅仅通过同义词匹配召回的文档位次居后。
 
-Taking the following set of search results:
+例如将 `ghost` 与 `spirit` 设为同义词：
+- 用户搜 `spirit` 时，标题为 `Spirit of Justice` 的文档一定排在标题为 `Ghouls 'n Ghosts` 的文档前面。
 
-<CodeGroup>
+## 双向互通同义词 (Mutual association)
 
-```json
-[
-  {
-    "id": 0,
-    "title": "Ghouls 'n Ghosts"
-  },
-  {
-    "id": 1,
-    "title": "Phoenix Wright: Spirit of Justice"
-  }
-]
-```
-
-</CodeGroup>
-
-If you configure `ghost` as a synonym of `spirit`, queries searching for `spirit` will return document `1` before document `0`.
-
-## Mutual association
-
-By associating one or more synonyms with each other, they will be considered the same in both directions.
-
-<CodeGroup>
+互相关联的一组同义词在两个方向上地位等价：
 
 ```
 shoe <=> boot <=> slipper <=> sneakers
 ```
 
-</CodeGroup>
-
-When a search is done with one of these words, all synonyms will be considered as the same word and will appear in the search results.
-
-### Example
-
-To create a mutual association between four words, this is the JSON syntax that should be [added to the settings](/reference/api/settings/update-synonyms).
+JSON 配置方式：
 
 <CodeGroup>
 
@@ -147,13 +89,9 @@ To create a mutual association between four words, this is the JSON syntax that 
 
 </CodeGroup>
 
-## Multi-word synonyms
+## 多词复合短语同义词
 
-Meilisearch treats multi-word synonyms as [phrases](/reference/api/search/search-with-post#body-q).
-
-### Example
-
-Suppose you set `San Francisco` and `SF` as synonyms with a [mutual association](#mutual-association)
+Meilisearch 原生支持由多个单词组成的短语同义词，并在匹配时将其视作连续短语（Phrase）：
 
 <CodeGroup>
 
@@ -170,18 +108,8 @@ Suppose you set `San Francisco` and `SF` as synonyms with a [mutual association]
 
 </CodeGroup>
 
-If you input `SF` as a search query, Meilisearch will also return results containing the phrase `San Francisco`. 
+## 数量与长度限制约束
 
-However, depending on the ranking rules, they might be considered less [relevant](/capabilities/full_text_search/relevancy/relevancy) than those containing `SF`. The reverse is also true: if your query is `San Francisco`, documents containing `San Francisco` may rank higher than those containing `SF`.
-
-## Synonym term length limitation
-
-Meilisearch only fetches synonyms for search terms that are between 1 and 3 words. Terms with 4 or more words will not return any synonym matches.
-
-For example, if you set `"lord of the rings"` as a synonym for `"lotr"`, searching for `"lotr"` will return documents containing `"lord of the rings"`. However, if you search for `"lord of the rings"`, Meilisearch will not return documents containing `"lotr"` because the search term has more than 3 words.
-
-## Maximum number of synonyms per term
-
-A single term may have up to 50 synonyms. Meilisearch silently ignores any synonyms beyond this limit. For example, if you configure 51 synonyms for `book`, Meilisearch will only return results containing the term itself and the first 50 synonyms.
-
-If any synonyms for a term contain more than one word, the sum of all words across all synonyms for that term cannot exceed 100 words. Meilisearch silently ignores any synonyms beyond this limit. For example, if you configure 40 synonyms for `computer` in your application, taken together these synonyms must contain fewer than 100 words.
+- **词长限制**：Meilisearch 仅对由 **1 到 3 个词**构成的查询词触发同义词扩展。如果输入包含 4 个及以上词汇，将不再展开同义词。
+- **单个词的同义词上限**：每个词最多可关联 **50 个同义词**。超出 50 的部分将被静默忽略。
+- **总词数上限**：某个词的所有同义词加起来，总词数不得超过 **100 个词**。

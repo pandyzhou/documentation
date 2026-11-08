@@ -1,43 +1,43 @@
 ---
-title: Full-text search
-sidebarTitle: Overview
-description: Meilisearch's full-text search returns relevant results in milliseconds with built-in typo tolerance, prefix matching, and multi-criteria ranking.
+title: 全文检索 (Full-text search)
+sidebarTitle: 概览
+description: Meilisearch 全文检索在毫秒级内返回精准结果，内置错别字容错、前缀即搜匹配与多准则打分排序流水线。
 ---
 
-Full-text search is the core capability of Meilisearch. When a user types a query, Meilisearch scans [indexed](/capabilities/indexing/overview) documents and returns results ranked by relevance using a multi-criteria sorting algorithm.
+全文检索是 Meilisearch 的核心立足之本。当用户输入检索词时，Meilisearch 会高速扫描[已建索](/capabilities/indexing/overview)的文档，并运用多准则排序算法，按相关度高低返回结果。
 
-## Key features
+## 核心特性
 
-- **[Typo tolerance](/capabilities/full_text_search/relevancy/typo_tolerance_settings)**: automatically handles misspellings using Levenshtein distance
-- **[Prefix search](/capabilities/full_text_search/how_to/configure_prefix_search)**: returns results as the user types, matching partial words
-- **Multi-criteria ranking**: combines multiple [ranking rules](/capabilities/full_text_search/relevancy/ranking_rules) (typo, proximity, attribute, exactness, and more) to determine result order
-- **Customizable relevancy**: configure ranking rules, [searchable attributes](/capabilities/full_text_search/how_to/configure_searchable_attributes), [stop words](/capabilities/full_text_search/how_to/configure_stop_words), [synonyms](/capabilities/full_text_search/relevancy/synonyms), and more to fine-tune results for your use case
+- **[错别字容错](/capabilities/full_text_search/relevancy/typo_tolerance_settings)**：基于莱文斯坦编辑距离（Levenshtein distance），自动智能纠正拼写失误
+- **[前缀即搜匹配](/capabilities/full_text_search/how_to/configure_prefix_search)**：随着用户键盘敲击实时返回匹配局部词汇的结果（打字即搜）
+- **多准则排序流水线**：串联组合多项[排序规则](/capabilities/full_text_search/relevancy/ranking_rules)（容错成本、词距、属性权重、精确度等），综合决定展示顺序
+- **高度可定制的相关度**：灵活配置排序规则、[可搜索字段](/capabilities/full_text_search/how_to/configure_searchable_attributes)、[停用词](/capabilities/full_text_search/how_to/configure_stop_words)、[同义词](/capabilities/full_text_search/relevancy/synonyms)等，深度适配具体业务场景
 
-## When to use full-text search
+## 何时采用全文检索？
 
-Full-text search works best when users search with keywords or short phrases and expect results ranked by textual relevance. If your users search with natural language questions or need results based on meaning rather than exact terms, consider [hybrid search](/capabilities/hybrid_search/overview) or [agentic search](/capabilities/agentic_search/overview).
+当用户通过关键词或简短词组进行检索，并期望获得基于文本字面与语义相关度排序的结果时，全文检索是最佳方案。如果你的用户习惯用长句自然语言提问，或者核心诉求是基于抽象语境含义而非精确词汇匹配，请考虑使用[混合检索](/capabilities/hybrid_search/overview)或[智能体对话搜索](/capabilities/agentic_search/overview)。
 
-## Choosing a search endpoint
+## 搜索接口的选择：POST 优先
 
-Meilisearch exposes two search routes: `POST /indexes/{index_uid}/search` and `GET /indexes/{index_uid}/search`. **Prefer `POST` in nearly all cases.** `POST` accepts the full range of search parameters, including structured (array) `filter` expressions, and is the endpoint every official SDK uses.
+Meilisearch 提供了两条搜索路由：`POST /indexes/{index_uid}/search` 与 `GET /indexes/{index_uid}/search`。**在绝大多数场景下，强烈推荐使用 `POST` 端点。** `POST` 完整支持所有高级搜索参数（包括结构化数组形态的 `filter` 过滤表达式），这也是所有官方 SDK 默认使用的端点。
 
 <Warning>
-Use of the `GET /search` route is discouraged unless you have a specific reason to prefer it (for example, to leverage HTTP caching at a proxy layer). The `GET` route only accepts string filter expressions, so array-shaped filters must be serialized to strings before being passed as query parameters.
+除非你有非常明确的技术理由（例如必须依赖反向代理或 CDN 层的 HTTP GET 缓存机制），否则不建议使用 `GET /search`。`GET` 路由仅支持字符串形式的过滤表达式，且可能受 URL 长度限制影响。
 </Warning>
 
-## Next steps
+## 下一步探索
 
 <CardGroup cols={2}>
-  <Card title="Getting started" href="/capabilities/full_text_search/getting_started/placeholder_search">
-    Try your first search query
+  <Card title="快速上手" href="/capabilities/full_text_search/getting_started/placeholder_search">
+    发起你的第一个搜索查询
   </Card>
-  <Card title="Configure relevancy" href="/capabilities/full_text_search/relevancy/relevancy">
-    Learn how ranking works and how to customize it
+  <Card title="配置相关度" href="/capabilities/full_text_search/relevancy/relevancy">
+    深入了解排序算法的工作机制与定制方案
   </Card>
-  <Card title="Hybrid search" href="/capabilities/hybrid_search/overview">
-    Combine full-text with semantic search
+  <Card title="混合搜索" href="/capabilities/hybrid_search/overview">
+    将全文关键词与 AI 向量语义检索相结合
   </Card>
-  <Card title="How-to guides" href="/capabilities/full_text_search/how_to/configure_searchable_attributes">
-    Configure search behavior for your use case
+  <Card title="实操指南 (How-to)" href="/capabilities/full_text_search/how_to/configure_searchable_attributes">
+    根据你的实际业务场景定制个性化搜索逻辑
   </Card>
 </CardGroup>

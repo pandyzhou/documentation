@@ -1,16 +1,16 @@
 ---
-title: Built-in ranking rules
-sidebarTitle: Built-in ranking rules
-description: Built-in ranking rules are the core of Meilisearch's relevancy calculations.
+title: 内置排序规则 (Built-in ranking rules)
+sidebarTitle: 内置排序规则
+description: 内置排序规则是 Meilisearch 相关度打分与结果排序的核心基石。
 ---
 
-There are two types of ranking rules in Meilisearch: built-in ranking rules and [custom ranking rules](/capabilities/full_text_search/relevancy/custom_ranking_rules). This article describes the main aspects of using and configuring built-in ranking rules.
+在 Meilisearch 中有两种排序规则：内置排序规则与[自定义业务排序规则](/capabilities/full_text_search/relevancy/custom_ranking_rules)。本文详细介绍内置规则的核心原理、执行顺序与最佳调优实践。
 
-Built-in ranking rules are the core of Meilisearch's relevancy calculations.
+内置排序规则是 Meilisearch 计算相关度并排定文档展示位的心脏所在。
 
-## List of built-in ranking rules
+## 内置排序规则清单
 
-Meilisearch contains seven built-in ranking rules in the following order:
+Meilisearch 默认按以下优先顺序串联了 7 项内置排序规则：
 
 <CodeGroup>
 
@@ -28,97 +28,90 @@ Meilisearch contains seven built-in ranking rules in the following order:
 
 </CodeGroup>
 
-Depending on your needs, you might want to change this order. To do so, use the [update settings endpoint](/reference/api/settings/update-all-settings) or [update ranking rules endpoint](/reference/api/settings/update-rankingrules).
+根据你的具体业务场景，你随时可以调整该顺序。请调用[全量设置更新接口](/reference/api/settings/update-all-settings)或[排序规则更新接口](/reference/api/settings/update-rankingrules)。
 
-## 1. Words
+## 1. 词数匹配 (Words)
 
-Results are sorted by **decreasing number of matched query terms**. Returns documents that contain all query terms first.
+按照**命中查询词数量由多到少**排序。优先返回包含全部查询词的文档。
 
-To ensure optimal relevancy, **Meilisearch always sort results as if the `words` ranking rule were present** with a higher priority than the attributes, exactness, typo and proximity ranking rules. This happens even if `words` has been removed or set with a lower priority.
+为了保障基础相关度，**Meilisearch 在底层始终默认让 `words` 规则具备高于 attributes、exactness、typo 和 proximity 的绝对优先级**，即使你在配置中移除了 `words` 或调低了它的排位。
 
 <Note>
-The `words` rule works from right to left. Therefore, the order of the query string impacts the order of results.
+`words` 规则是从右向左生效的。因此，查询字符串中的单词先后顺序会对结果产生微妙影响。
 
-For example, if someone were to search `batman dark knight`, the `words` rule would rank documents containing all three terms first, documents containing only `batman` and `dark` second, and documents containing only `batman` third.
+例如，当用户搜索 `batman dark knight` 时，`words` 规则会优先排列同时包含全部 3 个词的文档；其次排列仅包含 `batman` 与 `dark` 的文档；最后排列仅包含 `batman` 的文档。
 </Note>
 
-## 2. Typo
+## 2. 拼写容错 (Typo)
 
-Results are sorted by **increasing number of typos**. Returns documents that match query terms with fewer typos first.
+按照**命中的错别字/编辑距离由少到多**排序。优先返回错字更少、拼写更精准的文档（0 错字 > 1 错字 > 2 错字）。
 
-## 3. Proximity
+## 3. 词间距离 (Proximity)
 
-Results are sorted by **increasing distance between matched query terms**. Returns documents where query terms occur close together and in the same order as the query string first.
+按照**匹配关键词之间的物理跨度由小到大**排序。优先返回查询词在原文中距离更近、且词序与用户输入更一致的文档。
 
-[It is possible to lower the precision of this ranking rule.](/reference/api/settings/update-proximityprecision) This may significantly improve indexing performance. In a minority of use cases, lowering precision may also lead to lower search relevancy for queries using multiple search terms.
+[你可以降低此规则的计算精度](/reference/api/settings/update-proximityprecision)。这能够显著提升大规模数据建索的吞吐性能，但在极少数包含多个检索词的复杂查询下，可能会轻微折损词距排序的极致精准度。
 
-## 4. Attribute
+## 4. 复合属性规则 (Attribute - 兼容旧版)
 
-`attribute` is an older built-in ranking rule equivalent to using both `attributeRank` and `wordPosition` together. When you use `attribute`, Meilisearch first sorts results by the attribute ranking order, then uses the position within attributes as a tiebreaker.
+`attribute` 是旧版本的复合规则，相当于将 `attributeRank`（属性权重）与 `wordPosition`（词在字段中的位置）结合在一起处理。
 
 <Warning>
-You cannot use `attribute` together with `attributeRank` or `wordPosition`. If you try to configure ranking rules with both, Meilisearch will return an error. We recommend using a combination of the `attributeRank` and `wordPosition` rules.
+`attribute` 不能与 `attributeRank` 或 `wordPosition` 同时混用。如果你在规则列表中同时声明了它们，Meilisearch 将返回报错。现代最佳实践强烈推荐拆开使用 `attributeRank` 与 `wordPosition`。
 </Warning>
 
-For most use-cases, we recommend using `attributeRank` and `wordPosition` separately. This gives you more control over result ordering by allowing you to place other ranking rules (like `sort` or custom ranking rules) between them.
+分开使用的好处在于：你可以把其他规则（例如自定义 `sort`）插入在两者之间，实现更精细的业务控制。
 
-## 4. Attribute rank
+## 4. 字段权重等级 (Attribute rank)
 
-Results are sorted according to the **[attribute ranking order](/capabilities/full_text_search/relevancy/attribute_ranking_order)**. Returns documents that contain query terms in more important attributes first.
+按照**[字段权重优先级顺序](/capabilities/full_text_search/relevancy/attribute_ranking_order)**排序。优先返回关键词出现在更高优先级字段中的文档（例如标题 title 出现 > 正文 overview 出现）。
 
-This rule evaluates only the attribute ranking order and does not consider the position of matched words within attributes.
+该规则仅评估字段本身的权重级别，不考虑词汇在字段内部的具体位置。
 
-## 5. Sort
+## 5. 动态排序 (Sort)
 
-Results are sorted **according to parameters decided at query time**. When the `sort` ranking rule is in a higher position, sorting is exhaustive: results will be less relevant but follow the user-defined sorting order more closely. When `sort` is in a lower position, sorting is relevant: results will be very relevant but might not always follow the order defined by the user.
+按照**用户在发起查询时动态传入的 `sort` 参数**排序。
+当 `sort` 规则处于较高优先级位置时，排序呈现**严格优先（Exhaustive）**特性：即便相关度较低，结果也会严格服从用户指定的升降序规则；当 `sort` 处于较靠后位置时，排序呈现**相关度优先（Relevant）**特性：在保证文本高度相关的平局候选中，再按用户的排序参数决胜。
 
 <Note>
-Differently from other ranking rules, sort is only active for queries containing the [`sort` search parameter](/reference/api/search/search-with-post#body-sort). If a search request does not contain `sort`, or if its value is invalid, this rule will be ignored.
+与其他规则不同，`sort` 仅在单次搜索请求中显式传入了 [`sort` 参数](/reference/api/search/search-with-post#body-sort)时激活。如果请求未携带 `sort` 或其值非法，该规则将被自动忽略。
 </Note>
 
-## 6. Word position
+## 6. 词在字段中的位置 (Word position)
 
-Results are sorted by the **position of query terms within the attributes**. Returns documents that contain query terms closer to the beginning of an attribute first.
+按照**关键词在字段中出现的位置由前到后**排序。越靠近字段开头的文档，排序越靠前（例如开门见山的标题优于末尾提及的内容）。
 
-This rule evaluates only the position of matched words within attributes and does not consider the attribute ranking order.
+## 7. 完全精确度 (Exactness)
 
-## 7. Exactness
+按照**命中单词与输入单词的字面精确吻合程度**排序。优先返回全字完全一致的文档（例如搜 `Knight` 时，`Knight` 优先于复数 `Knights`）。
 
-Results are sorted by **the similarity of the matched words with the query words**. Returns documents that contain exactly the same terms as the ones queried first.
+---
 
-## Ordering ranking rules
+## 排序规则的最佳编排建议
 
-The order of ranking rules determines which criteria take priority. Meilisearch applies rules sequentially using a bucket sort: the first rule sorts all results into groups, and each subsequent rule acts as a tiebreaker within those groups. Once a rule separates two documents, later rules have no effect on their relative order.
+Meilisearch 采用桶排序：前序规则完成粗分，后序规则逐层打破平局。一旦某条规则已经区分出文档的高低，后续规则就无法反转它们的顺序。
 
-### Group 1: broad matching (Words, Typo, Proximity)
+### 第一梯队：宽幅召回与基本相关度 (Words, Typo, Proximity)
+这三条规则负责大浪淘沙，保障最基础的字面与语义召回：
+- **Words**：命中了几个词
+- **Typo**：是精准字还是错别字
+- **Proximity**：词与词之间挨得有多近
 
-These three rules cast a wide net and return lots of results. Keep them first to ensure Meilisearch starts with a broad pool of relevant documents before narrowing down.
+### 第二梯队：精细微调 (Attribute Rank, Word Position, Exactness)
+用于在大量合格结果中进行精益求精的微调排位：
+- **Attribute Rank**：出现在核心字段（如标题）权重更高
+- **Word Position**：越靠近字段头部权重更高
+- **Exactness**：整词完全吻合优于局部变形词
 
-- **Words**: how many of your search terms appear in the document
-- **Typo**: whether matches are exact words or typo-tolerant matches
-- **Proximity**: how close together your search terms appear
+### `Sort` 应该放在哪里？
+建议将 `sort` **放在第一梯队之后、第二梯队之前**。这种布局在“文本相关度”与“用户自定义排序”之间达到了完美平衡：引擎先确保搜出来的东西与用户的输入真正相关，再在相关的内容里按价格、时间或评分进行升降序。
 
-### Group 2: fine-tuning (Attribute Rank, Word Position, Exactness)
+如果你做的是严格电商比价，用户点了“价格从低到高”就不管相关度死活都要严格排，可将 `sort` 移到最上方。
 
-These rules return fewer, more precise results. Place them after Group 1 to refine the large result set.
+### 自定义业务规则作为决胜项
+将诸如 `popularity:desc`（人气降序）、`release_date:desc`（发布时间倒序）等业务规则放在列表末尾，充当最终的微调决胜局。
 
-- **Attribute Rank**: matches in more important fields rank higher
-- **Word Position**: matches near the beginning of a field rank higher
-- **Exactness**: documents that match the whole query exactly rank higher
-
-### Where to place Sort
-
-Sort only activates when you include the `sort` parameter in your search query. Without it, the Sort rule has no effect.
-
-Place Sort **after Group 1 rules and before Group 2 rules** for the best balance of relevancy and sorting. This way, Meilisearch finds relevant results first, then uses your sort field to order documents with similar text relevance.
-
-If sorting matters more than text relevance for your use case (for example, strict price ordering in ecommerce), move Sort higher. If Sort seems to have no effect, try moving it up one position at a time.
-
-### Custom ranking rules as tiebreakers
-
-Place custom ranking rules (`popularity:desc`, `release_date:desc`, etc.) at the end of your sequence. They work best for adding business logic after text relevance has been established.
-
-### Recommended order
+### 官方推荐黄金顺序
 
 <CodeGroup>
 
@@ -137,57 +130,56 @@ Place custom ranking rules (`popularity:desc`, `release_date:desc`, etc.) at the
 
 </CodeGroup>
 
-## Examples
+---
+
+## 视觉图解示例
 
 <Tabs>
 
-<Tab title="Typo">
+<Tab title="错字容错 (Typo)">
 <Frame>
-  <img src="/assets/images/ranking-rules/vogli3.png" alt="Demonstrating the typo ranking rule by searching for 'vogli'" />
+  <img src="/assets/images/ranking-rules/vogli3.png" alt="搜索 'vogli' 演示 typo 规则" />
 </Frame>
 
-### Typo
+### 错字判定示例
+- `vogli`: 0 个错字（完全匹配，排第一位）
+- `volli`: 1 个错字（容错匹配，排第二位）
 
-- `vogli`: 0 typo
-- `volli`: 1 typo
-
-The `typo` rule sorts the results by increasing number of typos on matched query words.
+`typo` 规则按命中词的错字数量由少到多排序。
 
 </Tab>
 
-<Tab title="Proximity">
+<Tab title="词间距离 (Proximity)">
 <Frame>
-  <img src="/assets/images/ranking-rules/new_road.png" alt="Demonstrating the proximity ranking rule by searching for 'new road'" />
+  <img src="/assets/images/ranking-rules/new_road.png" alt="搜索 'new road' 演示 proximity 规则" />
 </Frame>
 
-### Proximity
+### 词距判定示例
+`Creature` 排在 `Mississippi Grind` 前面，正是因为 `proximity` 规则发挥了作用：`Creature` 中匹配到的两个词之间的最小**物理距离**，远小于 `Mississippi Grind` 中两个词之间的距离。
 
-The reason why `Creature` is listed before `Mississippi Grind` is because of the `proximity` rule. The smallest **distance** between the matching words in `creature` is smaller than the smallest **distance** between the matching words in `Mississippi Grind`.
-
-The `proximity` rule sorts the results by increasing distance between matched query terms.
-</Tab>
-
-<Tab title="Attribute rank">
-<Frame>
-  <img src="/assets/images/ranking-rules/belgium.png" alt="Demonstrating the attributeRank ranking rule by searching for 'belgium'" />
-</Frame>
-
-### Attribute rank
-
-`If It's Tuesday, This must be Belgium` is the first document because the matched word `Belgium` is found in the `title` attribute and not the `overview`.
-
-The `attributeRank` rule sorts the results by [attribute importance](/capabilities/full_text_search/relevancy/attribute_ranking_order).
+`proximity` 规则按匹配词之间的跨度由近到远排序。
 
 </Tab>
 
-<Tab title="Exactness">
+<Tab title="属性权重 (Attribute rank)">
 <Frame>
-  <img src="/assets/images/ranking-rules/knight.png" alt="Demonstrating the exactness ranking rule by searching for 'Knight'" />
+  <img src="/assets/images/ranking-rules/belgium.png" alt="搜索 'belgium' 演示 attributeRank 规则" />
 </Frame>
 
-### Exactness
+### 属性权重示例
+电影 `If It's Tuesday, This must be Belgium` 排在第一，是因为匹配词 `Belgium` 出现在了权重极高的 `title`（标题）字段中，而排在后面的电影只是在 `overview`（简介）中提到了该词。
 
-`Knight Moves` is displayed before `Knights of Badassdom`. `Knight` is exactly the same as the search query `Knight` whereas there is a letter of difference between `Knights` and the search query `Knight`.
+`attributeRank` 规则按[字段权重顺序](/capabilities/full_text_search/relevancy/attribute_ranking_order)排序。
+
+</Tab>
+
+<Tab title="完全精确度 (Exactness)">
+<Frame>
+  <img src="/assets/images/ranking-rules/knight.png" alt="搜索 'Knight' 演示 exactness 规则" />
+</Frame>
+
+### 精确度示例
+`Knight Moves` 展示在 `Knights of Badassdom` 前面。因为 `Knight` 与搜索词 `Knight` 完全一致，而 `Knights` 多了一个复数字母 `s`。
 
 </Tab>
 

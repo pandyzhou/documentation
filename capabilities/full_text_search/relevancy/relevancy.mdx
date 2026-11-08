@@ -1,56 +1,56 @@
 ---
-title: Relevancy
-sidebarTitle: Relevancy
-description: Relevancy refers to the accuracy of search results. If search results tend to be appropriate for a given query, then they can be considered relevant.
+title: 搜索相关度原理 (Relevancy)
+sidebarTitle: 相关度总览
+description: 相关度代表搜索结果与用户意图的契合精准度。深入理解 Meilisearch 的桶排序算法与多准则排序体系。
 ---
 
-**Relevancy** refers to the accuracy and effectiveness of search results. If search results are almost always appropriate, then they can be considered relevant, and vice versa.
+**相关度（Relevancy）**是指搜索结果针对特定查询请求的准确度与有效性。如果呈现给用户的搜索结果高度契合其真实意图，则该结果被视作高相关度，反之亦然。
 
-Meilisearch has a number of features for fine-tuning the relevancy of search results. The most important tool among them is **ranking rules**. There are two types of ranking rules: [built-in ranking rules](/capabilities/full_text_search/relevancy/ranking_rules) and custom ranking rules.
+Meilisearch 提供了丰富的调优工具，帮助你精细化控制搜索结果的相关度。其中最核心的利器便是**排序规则（Ranking rules）**。排序规则分为两大类：[内置排序规则 (Built-in ranking rules)](/capabilities/full_text_search/relevancy/ranking_rules) 与业务自定义排序规则。
 
-## Behavior
+## 排序规则的基本行为
 
-Each index possesses a list of ranking rules stored as an array in the [settings object](/reference/api/settings/list-all-settings). This array is fully customizable, meaning you can delete existing rules, add new ones, and reorder them as needed.
+每个索引都维护着一个排序规则列表，保存在[索引设置对象](/reference/api/settings/list-all-settings)中。该数组完全支持自定义：你可以随意删除已有规则、插入全新规则或调整它们的先后执行顺序。
 
-Meilisearch uses a [bucket sort](https://en.wikipedia.org/wiki/Bucket_sort) algorithm to rank documents whenever a search query is made. The first ranking rule applies to all documents, while each subsequent rule is only applied to documents considered equal under the previous rule as a tiebreaker.
+当发起搜索查询时，Meilisearch 采用**桶排序算法（Bucket sort）**对匹配到的文档进行逐级过滤和打分。第一条规则作用于全部匹配文档；此后，下一条规则仅作用于在前一条规则判定下打分相同（平局）的文档集合中，充当决胜局（Tiebreaker）判定。
 
-**The order in which ranking rules are applied matters.** The first rule in the array has the most impact, and the last rule has the least. Our default configuration meets most standard needs, but [you can change it](/reference/api/settings/update-rankingrules).
+**排序规则在数组中的先后顺序极为关键。** 排在数组最前面的规则对结果排位的影响力最大，而末尾规则影响力最小。Meilisearch 的默认配置经过工业级深度调优，能满足绝大多数通用场景，但你随时可以[根据具体业务灵活调整](/reference/api/settings/update-rankingrules)。
 
-Deleting a rule means that Meilisearch will no longer sort results based on that rule. For example, **if you delete the [typo ranking rule](/capabilities/full_text_search/relevancy/ranking_rules#2-typo), documents with typos will still be considered during search**, but they will no longer be sorted by increasing number of typos.
+从规则列表中删除某条规则，意味着 Meilisearch 在最终排序时不再依据该维度进行前后排位。例如：**如果你删除了 [typo 拼写容错规则](/capabilities/full_text_search/relevancy/ranking_rules#2-typo)，带有错字的文档在搜索时依然会被召回，但它们将不再按照“错字数量由少到多”来排列优先展示位**。
 
-## How ranking works
+## 排序管道是如何运转的？
 
-Meilisearch uses a [bucket sort](https://en.wikipedia.org/wiki/Bucket_sort) pipeline to determine which documents best match a query. The engine applies ranking rules sequentially: the first rule sorts all matching documents into broad groups (or "buckets"), and each subsequent rule acts as a tiebreaker within those groups. Because earlier rules have the greatest impact on final ordering, the position of each rule in the array matters significantly.
+Meilisearch 使用多阶段桶排序流水线来决定哪篇文档最匹配当前查询。引擎依次执行各项规则：第一条规则将所有匹配文档初筛归入几个大的粗分组（Buckets），随后的规则在这些桶内逐层打破平局。因为越靠前的规则对最终排序的决定性越强，因此规则在数组中的相对位置至关重要。
 
-By default, Meilisearch ships with built-in ranking rules that handle word matching, typo tolerance, proximity, attribute weight, exactness, and more. You can also insert custom ranking rules at any position in the pipeline to sort by numeric or date fields specific to your dataset (for example, sorting by a popularity score or a release date).
+默认情况下，Meilisearch 自带一组涵盖词数匹配、拼写容错、词间距离、属性权重、精确度等维度的内置规则。你也可以将基于业务属性（如热度评分、销量、发布日期）的自定义排序规则无缝插入到流水线的任意指定位置。
 
-## Chunking large documents
+## 大篇幅长文档的切块建议
 
-Meilisearch is optimized for paragraph-sized chunks of text. Documents with very large text fields (multiple pages of content) may lead to reduced search relevancy because ranking rules like proximity and word position work best on shorter text.
+Meilisearch 底层是针对**段落级（Paragraph-sized）**的紧凑文本进行深度算法优化的。如果单个文档包含超大文本字段（如整本长书或几十页的单篇超长文章），可能会导致搜索相关度下降，因为词间距离（Proximity）和命中词位置（Word Position）等打分规则在过长文本上的敏感度会折损。
 
-If your dataset contains large documents, split them into smaller chunks (one per paragraph or section) before indexing. Each chunk becomes its own document with a shared identifier linking it back to the original. Use Meilisearch's [distinct attribute](/capabilities/full_text_search/how_to/configure_distinct_attribute) to prevent duplicates in search results.
+如果你的数据集中存在长文档，强烈建议在建索前将其拆分成较小的逻辑块（例如按章节或段落切分）。每个分块成为独立的文档，并携带指向原始长文档的共有 ID。配合 Meilisearch 的[去重属性 (Distinct attribute)](/capabilities/full_text_search/how_to/configure_distinct_attribute)，即可防止同一本书的多个段落在搜索结果中重复刷屏。
 
-For example, a book with 50 paragraphs becomes 50 documents, each containing one paragraph plus the book's metadata (title, author). The distinct attribute ensures only the best-matching paragraph is returned per book.
+例如：一本包含 50 个段落的书籍被拆分为 50 篇分块文档，每篇文档包含一个自然段以及书名、作者等元数据。通过将 `book_id` 设为去重属性，引擎确保每本书仅返回与查询词匹配度最高的那一个段落。
 
-## Explore relevancy features
+## 探索相关度专项特性
 
 <CardGroup cols={2}>
-  <Card title="Ranking rules" href="/capabilities/full_text_search/relevancy/ranking_rules">
-    Understand the built-in ranking rules and how they determine result order
+  <Card title="内置排序规则" href="/capabilities/full_text_search/relevancy/ranking_rules">
+    深入解析 6 大默认内置规则及其打分机制
   </Card>
-  <Card title="Custom ranking rules" href="/capabilities/full_text_search/relevancy/custom_ranking_rules">
-    Add your own ranking rules based on numeric or date attributes
+  <Card title="自定义业务排序规则" href="/capabilities/full_text_search/relevancy/custom_ranking_rules">
+    添加基于数值或日期字段的个性化业务排序规则
   </Card>
-  <Card title="Ranking score" href="/capabilities/full_text_search/relevancy/ranking_score">
-    Inspect the relevancy score assigned to each search result
+  <Card title="相关度打分明细" href="/capabilities/full_text_search/relevancy/ranking_score">
+    审查每条搜索结果的底层相关度打分与详细权重拆解
   </Card>
-  <Card title="Attribute ranking order" href="/capabilities/full_text_search/relevancy/attribute_ranking_order">
-    Control which document attributes carry the most weight in ranking
+  <Card title="字段权重顺序" href="/capabilities/full_text_search/relevancy/attribute_ranking_order">
+    控制哪些文档字段在排序中具有更高的影响力
   </Card>
-  <Card title="Typo tolerance" href="/capabilities/full_text_search/relevancy/typo_tolerance_settings">
-    Configure how Meilisearch handles spelling mistakes
+  <Card title="错别字容错设置" href="/capabilities/full_text_search/relevancy/typo_tolerance_settings">
+    精细化调整拼写容错的词长阈值与关闭策略
   </Card>
-  <Card title="Synonyms" href="/capabilities/full_text_search/relevancy/synonyms">
-    Define equivalent terms so users find results regardless of wording
+  <Card title="同义词字典" href="/capabilities/full_text_search/relevancy/synonyms">
+    定义等价词汇映射，大幅消除词不匹配导致的漏搜
   </Card>
 </CardGroup>

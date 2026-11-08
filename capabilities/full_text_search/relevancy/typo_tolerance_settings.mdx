@@ -1,7 +1,7 @@
 ---
-title: Typo tolerance
-sidebarTitle: Typo tolerance
-description: Configure typo tolerance to control how Meilisearch handles spelling mistakes in search queries.
+title: 错别字与拼写容错设置 (Typo tolerance)
+sidebarTitle: 拼写容错设置
+description: 配置 Meilisearch 的拼写容错机制，精细化掌控引擎如何处理搜索查询中的拼写错误。
 ---
 
 import CodeSamplesTypoToleranceGuide1 from '/snippets/generated-code-samples/code_samples_typo_tolerance_guide_1.mdx';
@@ -9,66 +9,54 @@ import CodeSamplesTypoToleranceGuide4 from '/snippets/generated-code-samples/cod
 import CodeSamplesTypoToleranceGuide3 from '/snippets/generated-code-samples/code_samples_typo_tolerance_guide_3.mdx';
 import CodeSamplesTypoToleranceGuide2 from '/snippets/generated-code-samples/code_samples_typo_tolerance_guide_2.mdx';
 
-Typo tolerance helps users find relevant results even when their search queries contain spelling mistakes or typos, for example, typing `phnoe` instead of `phone`. You can [configure the typo tolerance feature for each index](/reference/api/settings/update-typotolerance).
+拼写容错（Typo tolerance）帮助用户在输入错误字符或打错字母时（例如打错成 `phnoe` 而不是 `phone`），依然能顺利召回相关结果。你可以[针对每个索引单独配置容错行为](/reference/api/settings/update-typotolerance)。
 
-## `enabled`
+## `enabled`（全局开关）
 
-Typo tolerance is enabled by default, but you can disable it if needed:
+拼写容错默认开启。如有特殊业务需要，你可以显式将其关闭：
 
 <CodeSamplesTypoToleranceGuide1 />
 
-With typo tolerance disabled, Meilisearch no longer considers words that are a few characters off from your query terms as matches. For example, a query for `phnoe` will no longer return a document containing the word `phone`.
+关闭后，Meilisearch 将不再召回与查询词存在字符微小差异的近似词。例如搜 `phnoe` 将无法再匹配到包含 `phone` 的文档。
 
-**In most cases, keeping typo tolerance enabled results in a better search experience.** Massive or multilingual datasets may be exceptions, as typo tolerance can cause false-positive matches in these cases.
+**在绝大多数场景下，保持开启容错能够带来好得多的搜索体验。** 仅在极其庞大或混杂多语言的数据集下，偶发误伤（False positives）时才考虑按需调整。
 
-## `minWordSizeForTypos`
+## `minWordSizeForTypos`（错字词长阶梯阈值）
 
-By default, Meilisearch accepts one typo for query terms containing five or more characters, and up to two typos if the term is at least nine characters long.
+默认情况下，Meilisearch 遵循以下词长规则：
+- 单词长度达到 **5 个字符**及以上，允许 **1 个错字**；
+- 单词长度达到 **9 个字符**及以上，最多允许 **2 个错字**。
 
-If your dataset contains `seven`, searching for `sevem` or `sevan` will match `seven`. But `tow` won't match `two` as it's less than `5` characters.
+如果你的数据集中包含 `seven`，搜 `sevem` 或 `sevan` 会成功匹配；但搜 `tow` 无法匹配 `two`，因为只有 3 个字符（小于 5）。
 
-You can override these default settings using the `minWordSizeForTypos` object. The code sample below sets the minimum word size for one typo to `4` and the minimum word size for two typos to `10`.
+你可以通过 `minWordSizeForTypos` 对象覆盖该默认规则：
 
 <CodeSamplesTypoToleranceGuide4 />
 
-When updating the `minWordSizeForTypos` object, keep in mind that:
-
-- `oneTypo` must be greater than or equal to 0 and less than or equal to `twoTypos`
-- `twoTypos` must be greater than or equal to `oneTypo` and less than or equal to `255`
-
-To put it another way: `0 ≤ oneTypo ≤ twoTypos ≤ 255`.
-
-We recommend keeping the value of `oneTypo` between `2` and `8` and the value of `twoTypos` between `4` and `14`. If either value is too low, you may get a large number of false-positive results. On the other hand, if both values are set too high, many search queries may not benefit from typo tolerance.
+配置必须满足数学约束：`0 ≤ oneTypo ≤ twoTypos ≤ 255`。官方推荐将 `oneTypo` 设在 `2` 到 `8` 之间，`twoTypos` 设在 `4` 到 `14` 之间。如果设得太低容易导致大量风马牛不相及的误伤，设得太高则无法享受到容错红利。
 
 <Tip>
-**Typo on the first character**  
-Meilisearch considers a typo on a query's first character as two typos.
-
-**Concatenation**  
-When considering possible candidates for typo tolerance, Meilisearch will concatenate multiple search terms separated by a [space separator](/resources/internals/datatypes#string). This is treated as one typo. For example, a search for `any way` would match documents containing `anyway`.
-
-For more about typo calculations, [see below](#how-typo-tolerance-works).
+**首字母错字加权**：首字符打错在 Meilisearch 底层直接被计为 **2 个错字**。  
+**空格粘连处理**：当用户在词语间少打或多打了空格（如把 `anyway` 打成了 `any way`），Meilisearch 会自动将其粘连合并计算，并计为 **1 个错字**。
 </Tip>
 
-## `disableOnWords`
+## `disableOnWords`（特定词禁用容错）
 
-You can disable typo tolerance for a list of query terms by adding them to `disableOnWords`. `disableOnWords` is case insensitive.
+你可以指定一批敏感词列表，搜索这些词时强制要求 100% 精确匹配（不区分大小写）：
 
 <CodeSamplesTypoToleranceGuide3 />
 
-Meilisearch won't apply typo tolerance on the query term `Shrek` or `shrek` at search time to match documents.
+## `disableOnAttributes`（特定字段禁用容错）
 
-## `disableOnAttributes`
-
-You can disable typo tolerance for a specific [document attribute](/resources/internals/documents) by adding it to `disableOnAttributes`. The code sample below disables typo tolerance for `title`:
+你可以指定某些高精度要求的特定字段（例如产品 SKU 编号、人名、片名 `title`）关闭容错：
 
 <CodeSamplesTypoToleranceGuide2 />
 
-With the above settings, matches in the `title` attribute will not tolerate any typos. For example, a search for `beautiful` (9 characters) will not match the movie "Biutiful" starring Javier Bardem. With the default settings, this would be a match.
+在上述配置下，`title` 字段中的匹配不允许任何错字，保障核心标题匹配的纯粹性。
 
-## `disableOnNumbers`
+## `disableOnNumbers`（数字完全禁用容错）
 
-You can disable typo tolerance for all numeric values across all indexes and search requests by setting `disableOnNumbers` to `true`:
+将 `disableOnNumbers` 设为 `true` 可以对所有纯数字禁用容错：
 
 <CodeGroup>
 
@@ -84,41 +72,10 @@ curl \
 
 </CodeGroup>
 
-By default, typo tolerance on numerical values is turned on. This may lead to false positives, such as a search for `2024` matching documents containing `2025` or `2004`.
+默认情况下数字也是参与容错的，这可能导致搜年份 `2024` 时意外命中 `2025` 或 `2004`。将该项设为 `true` 后，数字将仅支持严格完全匹配，还能轻微改善建索性能。
 
-When `disableOnNumbers` is set to `true`, queries with numbers only return exact matches. Besides reducing the number of false positives, disabling typo tolerance on numbers may also improve indexing performance.
+## 底层容错机制原理
 
-## How typo tolerance works
+Meilisearch 基于前缀[莱文斯坦编辑距离算法（Levenshtein distance）](https://en.wikipedia.org/wiki/Levenshtein_distance)实现容错。两个单词之间的编辑距离代表将词 A 变为词 B 所需的最少单字符操作次数（替换、插入或删除）。
 
-Meilisearch uses a prefix [Levenshtein algorithm](https://en.wikipedia.org/wiki/Levenshtein_distance) to determine if a word in a document could be a possible match for a query term.
-
-The number of allowed typos is roughly equivalent to Levenshtein distance. The Levenshtein distance between two words _M_ and _P_ can be thought of as "the minimum cost of transforming _M_ into _P_" by performing the following elementary operations on _M_:
-
-- Substitution of a character (for example, `kitten` → `sitten`)
-- Insertion of a character (for example, `siting` → `sitting`)
-- Deletion of a character (for example, `saturday` → `satuday`)
-
-By default, Meilisearch uses the following rules for matching documents. These rules apply **per word**, not for the whole query string:
-
-- If the query word is between `1` and `4` characters, **no typo** is allowed. Only documents containing words that **start with** or are of the **same length** as the query word are considered
-- If the query word is between `5` and `8` characters, **one typo** is allowed
-- If the query word contains more than `8` characters, a maximum of **two typos** is allowed
-
-Meilisearch allows a maximum of 2 typos per word. Words with 3 or more typos will never match, regardless of word length or configuration.
-
-For example, `saturday` (8 characters) uses the second rule and matches with **one typo**:
-
-- `saturday` is accepted (exact match)
-- `satuday` is accepted (one typo)
-- `sutuday` is not accepted (two typos)
-- `caturday` is not accepted (a typo on the first letter counts as two typos)
-
-## Impact on the `typo` ranking rule
-
-The [`typo` ranking rule](/capabilities/full_text_search/relevancy/ranking_rules#2-typo) sorts search results by increasing number of typos on matched query words. Documents with 0 typos rank highest, followed by those with 1 and then 2 typos.
-
-The presence or absence of the `typo` ranking rule has no impact on the typo tolerance setting. However, **disabling typo tolerance effectively also disables the `typo` ranking rule**, because all returned documents will contain 0 typos.
-
-- Typo tolerance affects how lenient Meilisearch is when matching documents
-- The `typo` ranking rule affects how Meilisearch sorts its results
-- Disabling typo tolerance also disables the `typo` ranking rule
+Meilisearch **单个单词最多允许 2 个错字**。无论单词有多长，超过 3 个错字的词绝不会被召回。

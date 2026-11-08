@@ -1,15 +1,18 @@
 ---
-title: Search with snippets
-description: Return highlighted and cropped result snippets to show users exactly where their query matched in each document.
+title: 搜索片段：高亮与上下文裁剪 (Snippets)
+sidebarTitle: 高亮与裁剪
+description: 返回带有高亮标记和智能裁剪的搜索结果片段，让用户一眼看清命中词在文档中的具体位置。
 ---
 
-Search snippets let you display the portion of a document that matches a user's query, with matched terms highlighted. This helps users quickly evaluate whether a result is relevant without reading the full document content.
+搜索片段（Search snippets）允许你提取并展示文档中与用户查询词最契合的局部文本，并对命中的词汇进行视觉高亮。这能帮助用户无需通读几千字的完整文档，即可在瞬间判定该条结果是否正是自己所需的。
 
-Meilisearch provides two complementary features for this: **highlighting** wraps matched terms in tags, and **cropping** trims long text fields to show only the relevant portion around matched terms.
+Meilisearch 为此提供了两项相辅相成的原生能力：
+- **关键词高亮 (Highlighting)**：用指定标签包裹命中词（默认 `<em>`）；
+- **上下文裁剪 (Cropping)**：截断冗长的大段文本，仅保留命中词前后最相关的上下文窗口。
 
-## Highlighting matched terms
+## 关键词高亮 (Highlighting)
 
-Use `attributesToHighlight` to specify which fields should have matched terms wrapped in highlight tags. Set it to `["*"]` to highlight all [displayed attributes](/capabilities/full_text_search/how_to/configure_displayed_attributes).
+使用 `attributesToHighlight` 参数声明哪些字段中的命中词需要被高亮标签包裹。传入 `["*"]` 可对所有[展示字段](/capabilities/full_text_search/how_to/configure_displayed_attributes)启用高亮。
 
 <CodeGroup>
 
@@ -26,7 +29,7 @@ curl \
 
 </CodeGroup>
 
-The response includes a `_formatted` object in each hit. Inside `_formatted`, matched terms are wrapped in `<em>` tags by default:
+响应中的每篇命中结果都会额外附带一个 `_formatted` 对象。在该对象内部，匹配到的关键词默认被 `<em>` 标签包裹：
 
 <CodeGroup>
 
@@ -47,9 +50,9 @@ The response includes a `_formatted` object in each hit. Inside `_formatted`, ma
 
 </CodeGroup>
 
-### Custom highlight tags
+### 自定义高亮标签
 
-Use `highlightPreTag` and `highlightPostTag` to replace the default `<em>` tags with custom markup:
+使用 `highlightPreTag` 与 `highlightPostTag` 参数替换默认的 `<em>` 标签，以便与你的前端 CSS 样式类对接：
 
 <CodeGroup>
 
@@ -68,9 +71,9 @@ curl \
 
 </CodeGroup>
 
-## Cropping long text fields
+## 裁剪超长文本字段 (Cropping)
 
-Use `attributesToCrop` to trim long text fields so only the portion around matched terms is returned. This is especially useful for fields like descriptions or article bodies.
+使用 `attributesToCrop` 裁剪长文本字段，使得结果中仅返回命中词周边的紧凑文字窗口。这在文章详情、正文描述或日志字段中极其有用。
 
 <CodeGroup>
 
@@ -88,7 +91,7 @@ curl \
 
 </CodeGroup>
 
-The `_formatted` object contains the cropped text:
+返回的 `_formatted` 对象将呈现被精炼裁剪后的文本：
 
 <CodeGroup>
 
@@ -102,17 +105,17 @@ The `_formatted` object contains the cropped text:
 
 </CodeGroup>
 
-### Crop parameters
+### 裁剪参数说明
 
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| `attributesToCrop` | `null` | Array of attributes to crop. Use `["*"]` for all displayed attributes. |
-| `cropLength` | `10` | Maximum number of words in the cropped text. |
-| `cropMarker` | `"..."` | String placed at the beginning or end of cropped text to indicate truncation. |
+| 参数名称 | 默认值 | 参数功能说明 |
+| :--- | :--- | :--- |
+| `attributesToCrop` | `null` | 需要进行裁剪的字段列表。传入 `["*"]` 代表裁剪所有展示字段。 |
+| `cropLength` | `10` | 裁剪后的最大词数窗口（Window length）。 |
+| `cropMarker` | `"..."` | 在裁剪文本的前后用于指示文本被截断的省略标记字符串。 |
 
-### Custom crop length per attribute
+### 为不同字段单独定制裁剪长度
 
-You can set a specific crop length for individual attributes by appending `:length` to the attribute name:
+你可以通过在字段名后追加 `:length`，针对不同的字段指定不同的裁剪长度：
 
 <CodeGroup>
 
@@ -129,9 +132,9 @@ curl \
 
 </CodeGroup>
 
-## Combining highlighting and cropping
+## 黄金组合：同时启用高亮与裁剪
 
-For the best user experience, use both features together. This gives you a short, relevant snippet with matched terms visually emphasized:
+为了给用户提供最佳的搜索体验，**强烈建议同时结合使用高亮与裁剪**。这样能够呈现出兼顾“短小精炼”与“命中词视觉聚焦”的专业结果摘要：
 
 <CodeGroup>
 
@@ -152,7 +155,7 @@ curl \
 
 </CodeGroup>
 
-The `_formatted` response combines both:
+最终由 `_formatted` 提供的渲染效果：
 
 <CodeGroup>
 
@@ -168,9 +171,9 @@ The `_formatted` response combines both:
 </CodeGroup>
 
 <Tip>
-Fields listed in `attributesToCrop` are automatically highlighted if they also appear in `attributesToHighlight` or if `attributesToHighlight` is set to `["*"]`.
+若某个字段同时被列入 `attributesToCrop` 和 `attributesToHighlight`（或 `attributesToHighlight` 设为了 `["*"]`），裁剪后的文本片段内部会自动包含高亮标记。
 </Tip>
 
 <Info>
-For the full parameter reference, see the [search API reference](/reference/api/search/search-with-post).
+如需查阅全部搜索参数与高级选项，请参考[搜索 API 参考手册](/reference/api/search/search-with-post)。
 </Info>

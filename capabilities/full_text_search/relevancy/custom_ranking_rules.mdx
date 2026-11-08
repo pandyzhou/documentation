@@ -1,42 +1,41 @@
 ---
-title: Custom ranking rules
-sidebarTitle: Custom ranking rules
-description: Custom ranking rules promote certain documents over other search results that are otherwise equally relevant.
+title: 自定义业务排序规则 (Custom ranking rules)
+sidebarTitle: 自定义排序规则
+description: 自定义业务排序规则可以在文本相关度打分平局时，优先置顶具备特定业务属性的文档。
 ---
 
-There are two types of ranking rules in Meilisearch: [built-in ranking rules](/capabilities/full_text_search/relevancy/ranking_rules) and custom ranking rules. This article describes the main aspects of using and configuring custom ranking rules.
+在 Meilisearch 中有两种排序规则：[内置排序规则](/capabilities/full_text_search/relevancy/ranking_rules) 与自定义业务排序规则。本文详细介绍如何配置和使用自定义规则来满足你的业务排序逻辑。
 
-## Ascending and descending sorting rules
+## 升序与降序规则
 
-Meilisearch supports two types of custom rules: one for ascending sort and one for descending sort.
+Meilisearch 支持两种自定义规则语法：一种用于升序（Ascending），另一种用于降序（Descending）。
 
-To add a custom ranking rule, you have to communicate the attribute name followed by a colon (`:`) and either `asc` for ascending order or `desc` for descending order.
+添加自定义规则时，输入文档的字段名（Attribute Name），紧跟冒号（`:`），最后指定 `asc`（升序）或 `desc`（降序）：
 
-- To apply an **ascending sort** (results sorted by increasing value of the attribute): `attribute_name:asc`
+- **升序排列**（字段数值越小或字母顺序越靠前，排位越高）：`attribute_name:asc`
+- **降序排列**（字段数值越大或字母顺序越靠后，排位越高）：`attribute_name:desc`
 
-- To apply a **descending sort** (results sorted by decreasing value of the attribute): `attribute_name:desc`
-
-**The attribute must have either a numeric or a string value** in all of the documents contained in that index.
+**该字段在对应索引的所有文档中必须是数值型（Numeric）或字符串型（String）。**
 
 <Warning>
-If some documents do not contain the attribute defined in a custom ranking rule, the application of the ranking rule is undefined and the search results might not be sorted as you expected. Make sure that any attribute used in a custom ranking rule is present in all of your documents.
+如果索引中有部分文档**缺少**了自定义规则中指定的字段，排序行为将变得不确定，结果可能无法达到预期。请确保被设为自定义排序规则的字段在全量文档中均真实存在。
 </Warning>
 
-You can add this rule to the existing list of ranking rules using the [update settings endpoint](/reference/api/settings/update-all-settings) or [update ranking rules endpoint](/reference/api/settings/update-rankingrules).
+你可以通过[全量设置更新接口](/reference/api/settings/update-all-settings)或[排序规则更新接口](/reference/api/settings/update-rankingrules)将自定义规则追加到当前规则列表中。
 
-## How to use custom ranking rules
+## 如何合理使用自定义规则？
 
-Custom ranking rules sort results in lexicographical order. For example, `Elena` will rank higher than `Ryu` and lower than `11` in a descending sort.
+自定义规则按字符字典序（Lexicographical order）或数值大小排序。例如在降序排列中，`Elena` 会排在 `Ryu` 前面，但会排在数字 `11` 后面。
 
-Since this operation does not take into consideration document relevancy, in the majority of cases you should place custom ranking rules after the built-in ranking rules. This ensures that results are first sorted by relevancy, and the lexicographical sorting takes place only when two or more documents share the same ranking score.
+因为这项操作纯粹看字段数值或字典序，**并不考虑文档的文本相关度**，因此在绝大多数情况下，**你应当把自定义规则放在所有内置排序规则之后**。这样能够确保：只有当两篇或多篇文档在文本相关度打分完全相同（平局）时，才会动用自定义规则决胜。
 
-Setting a custom ranking rule at a high position may result in a degraded search experience, since users will see documents in alphanumerical order instead of sorted by relevance.
+如果你把自定义规则提到很靠前的位置，会导致搜索体验显著退化，因为用户看到的结果将变成冷冰冰的字母序或数值序列表，而非文本契合度最高的内容。
 
-## Example
+## 业务实战示例
 
-Suppose you have a movie dataset. The documents contain the fields `release_date` with a timestamp as value, and `movie_ranking`, an integer that represents its ranking.
+假设你有一批电影数据集。文档包含时间戳字段 `release_date`（上映日期）以及整数评分字段 `movie_ranking`。
 
-The following example creates a rule that makes older movies more relevant than recent ones. A movie released in 1999 will appear before a movie released in 2020.
+以下规则将使老电影排在前面（1999 年的电影排在 2020 年前面）：
 
 <CodeGroup>
 
@@ -46,7 +45,7 @@ release_date:asc
 
 </CodeGroup>
 
-The following example will create a rule that makes movies with a good rank more relevant than movies with a lower rank. Movies with a higher ranking will appear first.
+以下规则将使高评分电影排在低评分前面：
 
 <CodeGroup>
 
@@ -56,7 +55,7 @@ movie_ranking:desc
 
 </CodeGroup>
 
-The following array includes all built-in ranking rules and places the custom rules at the bottom of the processing order:
+完整的黄金排序规则数组如下，将自定义业务规则放在流水线最底部：
 
 <CodeGroup>
 
@@ -76,14 +75,9 @@ The following array includes all built-in ranking rules and places the custom ru
 
 </CodeGroup>
 
-## Sorting at search time and custom ranking rules
+## 检索期动态排序 (Sort) 与自定义排序规则的区别
 
-Meilisearch allows users to define [sorting order at query time](/capabilities/filtering_sorting_faceting/how_to/sort_results) by using the [`sort` search parameter](/reference/api/search/search-with-post#body-sort). There is some overlap between sorting and custom ranking rules, but the two do have different uses.
+Meilisearch 允许前端在[发起单次查询时传入 `sort` 参数](/capabilities/filtering_sorting_faceting/how_to/sort_results)。虽然它们看起来相似，但使用场景截然不同：
 
-In general, `sort` will be most useful when you want to allow users to define what type of results they want to see first. A good use-case for `sort` is creating a webshop interface where customers can sort products by descending or ascending product price.
-
-Custom ranking rules, instead, are always active once configured and are useful when you want to promote certain types of results. A good use-case for custom ranking rules is ensuring discounted products in a webshop always feature among the top results.
-
-<Tip>
-Meilisearch does not offer native support for promoting, pinning, and boosting specific documents so they are displayed more prominently than other search results. Consult these Meilisearch blog articles for workarounds on [implementing promoted search results with React InstantSearch](https://blog.meilisearch.com/promoted-search-results-with-react-instantsearch) and [document boosting](https://blog.meilisearch.com/document-boosting).
-</Tip>
+- **单次检索参数 `sort`**：通常由**最终用户主动触发**。例如电商网站中，用户在下拉框里主动选择“按价格从低到高排列”或“按销量从高到低排列”。
+- **自定义规则 (Custom ranking rules)**：属于**全局默认商业规则**，常驻生效。例如平台运营方希望在所有文本打分相近的商品中，拥有折扣标记或更高利润率的商品始终优先微调排在前排。

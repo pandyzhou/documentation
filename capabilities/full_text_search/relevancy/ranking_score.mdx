@@ -1,14 +1,14 @@
 ---
-title: Ranking score
-sidebarTitle: Ranking score
-description: Learn how Meilisearch computes the _rankingScore for each document and which index settings influence it.
+title: 相关度打分明细 (_rankingScore)
+sidebarTitle: 相关度打分
+description: 深入了解 Meilisearch 如何为每篇文档计算 _rankingScore 得分，以及哪些索引配置会直接影响该分数。
 ---
 
-The `_rankingScore` is a normalized value between `0.0` and `1.0` that represents how relevant a document is to a given search query. A score of `1.0` means the document is a perfect match, while a score closer to `0.0` means it is a weak match. Meilisearch does not return the ranking score by default; you must explicitly request it.
+`_rankingScore` 是一个介于 `0.0` 到 `1.0` 之间的归一化浮点数值，代表该文档与当前查询词的契合程度。`1.0` 代表完美匹配，越接近 `0.0` 代表匹配度越低。默认情况下 Meilisearch 不会返回该分值，需要客户端显式声明索取。
 
-## Requesting the ranking score
+## 请求返回打分
 
-To include `_rankingScore` in search results, set `showRankingScore` to `true` in your search request:
+在搜索请求体中将 `showRankingScore` 设为 `true`：
 
 <CodeGroup>
 
@@ -24,7 +24,7 @@ curl \
 
 </CodeGroup>
 
-Each document in the response will include a `_rankingScore` field:
+响应中的每篇命中结果都会包含 `_rankingScore` 字段：
 
 <CodeGroup>
 
@@ -48,9 +48,9 @@ Each document in the response will include a `_rankingScore` field:
 
 </CodeGroup>
 
-## Requesting a detailed breakdown
+## 请求深度打分拆解明细
 
-For a deeper understanding of why a document received a particular score, set `showRankingScoreDetails` to `true`. This adds a detailed global ranking score field, `_rankingScoreDetails`, to each document in the response. `_rankingScoreDetails` is an object containing one nested object per active ranking rule, showing how each rule contributed to the document's overall score:
+若想深入洞察文档为什么得到该分数，可同时将 `showRankingScoreDetails` 设为 `true`。响应中将为每篇文档追加一个 `_rankingScoreDetails` 对象，展示各项生效的排序规则分别贡献了多少分：
 
 <CodeGroup>
 
@@ -67,7 +67,7 @@ curl \
 
 </CodeGroup>
 
-The response includes a `_rankingScoreDetails` object for each document:
+返回数据结构如下：
 
 <CodeGroup>
 
@@ -92,77 +92,36 @@ The response includes a `_rankingScoreDetails` object for each document:
 
 </CodeGroup>
 
-Each key in `_rankingScoreDetails` corresponds to a [ranking rule](/capabilities/full_text_search/relevancy/ranking_rules), and its `score` property shows how well the document performed on that rule.
+`_rankingScoreDetails` 中的每个 Key 对应一条[排序规则](/capabilities/full_text_search/relevancy/ranking_rules)，内部的 `score` 反映了该文档在该规则下的具体得分。
 
-## How the score is computed
+## 得分是如何计算出来的？
 
-Ranking rules sort documents either by relevancy (`words`, `typo`, `proximity`, `exactness`, `attributeRank`, `wordPosition`) or by the value of a field (`sort`). Since `sort` does not rank documents by relevancy, it does not influence the `_rankingScore`.
+排序规则要么根据文本相关度排序（`words`, `typo`, `proximity`, `exactness`, `attributeRank`, `wordPosition`），要么根据字段的字面数值排序（`sort`）。由于 `sort` 并非衡量语义相关度，因此它**不参与** `_rankingScore` 的加权计算。
 
-Meilisearch computes the overall score by combining the subscores from each ranking rule, weighted by their position in the ranking rules list. Rules listed earlier carry more weight.
+Meilisearch 根据排序规则列表的排列顺序，按层级赋权合并各项子规则的分数。排在越靠前位置的规则，权重比率越大。
 
 <Note>
-A document's ranking score does not change based on the scores of other documents in the same index.
+文档的得分是绝对独立的，不会因为同一索引中其他文档的得分变动而改变。
 
-For example, if a document A has a score of `0.5` for a query term, this value remains constant no matter the score of documents B, C, or D.
+例如，文档 A 针对特定查询词得分 `0.5`，无论文档 B、C 考了 0 分还是满分，A 的分数都不会发生漂移。
 </Note>
 
-## Settings that influence the ranking score
+## 哪些索引设置会影响得分？
 
-The table below details all the index settings that can influence the `_rankingScore`. **Unlisted settings do not influence the ranking score.**
+下表列出了所有能够直接影响 `_rankingScore` 的索引配置项。**未列出的其他设置均不影响该打分。**
 
-| Index setting          | Influences if                                        | Rationale                                                                                                                                                                    |
-| :--------------------- | :--------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `searchableAttributes` | The `attributeRank` ranking rule is used             | The `attributeRank` ranking rule rates the document depending on the attribute in which the query terms show up. The order is determined by `searchableAttributes`          |
-| `searchableAttributes` | The `wordPosition` ranking rule is used         | The `wordPosition` ranking rule rates the document based on the position of query terms within attributes                                                               |
-| `rankingRules`         | Always                                               | The score is computed by computing the subscore of each ranking rule with a weight that depends on their order                                                               |
-| `stopWords`            | Always                                               | Stop words influence the `words` ranking rule, which is almost always used                                                                                                   |
-| `synonyms`             | Always                                               | Synonyms influence the `words` ranking rule, which is almost always used                                                                                                     |
-| `typoTolerance`        | The `typo` ranking rule is used                      | Used to compute the maximum number of typos for a query                                                                                                                      |
+| 索引配置项 | 触发影响的条件 | 影响原因 |
+| :--- | :--- | :--- |
+| `searchableAttributes` | 启用了 `attributeRank` 规则时 | 决定了命中文档出现在哪个字段时的权重高低 |
+| `searchableAttributes` | 启用了 `wordPosition` 规则时 | 决定了关键词出现在字段头部还是尾部的打分 |
+| `rankingRules` | 始终生效 | 各条规则在数组中的顺序直接决定了该规则的加权比率 |
+| `stopWords` | 始终生效 | 停用词直接影响 `words` 规则对关键词总数的统计 |
+| `synonyms` | 始终生效 | 同义词直接影响 `words` 规则的匹配判定 |
+| `typoTolerance` | 启用了 `typo` 规则时 | 决定了允许容忍的最大编辑距离阈值 |
 
-## Example: reading ranking score details
+## 业务应用场景
 
-Consider a recipe search with two documents matching "chicken curry", sorted by `prep_time_minutes:asc`:
-
-<CodeGroup>
-
-```json
-[
-  { "id": 1, "title": "Easy Chicken Curry", "prep_time_minutes": 20 },
-  { "id": 2, "title": "Chicken Stew with Curry Spices and Vegetables", "prep_time_minutes": 15 }
-]
-```
-
-</CodeGroup>
-
-With Sort placed **after** Proximity in ranking rules (`["words", "typo", "proximity", "sort", ...]`), walk through the `_rankingScoreDetails` in order:
-
-| Step | Rule | Doc 1 | Doc 2 | Outcome |
-|------|------|-------|-------|---------|
-| 0 | Words | 2/2, score `1.0` | 2/2, score `1.0` | Tie |
-| 1 | Typo | 0 typos, score `1.0` | 0 typos, score `1.0` | Tie |
-| 2 | Proximity | score `1.0` | score `0.5` | Doc 1 wins |
-
-Proximity broke the tie: "chicken" and "curry" sit next to each other in Doc 1's title (score `1.0`), but are separated by three words in Doc 2 (score `0.5`). Sort never got a chance to act, so even though Doc 2 has a faster prep time, it ranks second.
-
-Notice that Sort shows a `value` (not a `score`) because it does not measure relevance. This is why a document with a higher `_rankingScore` can still rank lower when Sort takes priority. See [ordering ranking rules](/capabilities/full_text_search/relevancy/ranking_rules#where-to-place-sort) for how Sort placement changes outcomes.
-
-## Use cases
-
-- **Debugging relevancy**: Use `showRankingScoreDetails` to understand exactly why a document ranks higher or lower than expected. This helps you fine-tune ranking rules, searchable attributes, and other settings.
-- **Building confidence indicators**: Display the ranking score in your UI as a relevancy badge or progress bar so users can gauge how closely a result matches their query.
-- **Setting score thresholds**: Filter out low-quality results in your frontend by only displaying documents above a certain `_rankingScore` threshold (for example, `0.5`).
-- **A/B testing ranking configurations**: Compare ranking scores across different index configurations to measure which setup produces better relevancy for your use case.
-
-## Next steps
-
-<CardGroup cols={2}>
-  <Card title="Built-in ranking rules" href="/capabilities/full_text_search/relevancy/ranking_rules">
-    Understand the ranking rules that determine document relevancy
-  </Card>
-  <Card title="Custom ranking rules" href="/capabilities/full_text_search/relevancy/custom_ranking_rules">
-    Add your own ranking rules based on document attributes
-  </Card>
-  <Card title="Search API reference" href="/reference/api/search/search-with-post">
-    Full reference for search parameters including showRankingScore
-  </Card>
-</CardGroup>
+- **精准调试相关度**：使用 `showRankingScoreDetails` 穿透排查为什么某条文档没排到第一位，指导调优排序规则或字段权重。
+- **打造置信度 UI 徽标**：在前端展示相关度百分比进度条（如“匹配度 95%”），直观反映可信度。
+- **低质量兜底拦截**：前端可过滤掉得分低于设定阈值（例如 `0.4`）的弱相关内容。
+- **A/B 测试科学评估**：对比不同规则配置下的打分表现，量化评估搜索质量改进。
