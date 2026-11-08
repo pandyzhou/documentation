@@ -1,23 +1,23 @@
 ---
-title: Python quick start
+title: Python SDK 快速入门
 sidebarTitle: Python
-description: Get started with Meilisearch using the Python SDK in 5 minutes.
+description: 5分钟内使用 Python 官方 SDK（meilisearch-python）快速接入 Meilisearch。
 ---
 
-This guide walks you through setting up Meilisearch with Python.
+本指南带你使用 Python 与 Meilisearch 快速建立连接、写入数据并实现检索。
 
-## Prerequisites
+## 环境要求
 
-- Python 3.8 or higher
-- A Meilisearch instance ([Cloud](https://cloud.meilisearch.com) or [self-hosted](/resources/self_hosting/getting_started/quick_start))
+- Python 3.8 或更高版本
+- 一个运行中的 Meilisearch 实例（[Meilisearch Cloud](https://cloud.meilisearch.com) 或 [自托管部署](/resources/self_hosting/getting_started/quick_start)）
 
-## 1. Install the SDK
+## 1. 安装 Python SDK
 
 ```bash
 pip install meilisearch
 ```
 
-## 2. Connect to Meilisearch
+## 2. 建立客户端连接
 
 ```python
 import meilisearch
@@ -30,56 +30,55 @@ client = meilisearch.Client(
 ```
 
 <Note>
-**Set your environment variables:**
+**配置环境变量：**
 ```bash
-export MEILISEARCH_URL="https://your-instance.meilisearch.io"  # or http://localhost:7700
+export MEILISEARCH_URL="https://your-instance.meilisearch.io"  # 本地开发可设为 http://localhost:7700
 export MEILISEARCH_KEY="your_api_key"
 ```
-[Get a free Cloud instance →](https://cloud.meilisearch.com)
+[免费获取 Cloud 云端实例 →](https://cloud.meilisearch.com)
 </Note>
 
-## 3. Add documents
+## 3. 批量添加文档
 
 ```python
 movies = [
-    {'id': 1, 'title': 'The Matrix', 'genres': ['Action', 'Sci-Fi'], 'year': 1999},
-    {'id': 2, 'title': 'Inception', 'genres': ['Action', 'Thriller'], 'year': 2010},
-    {'id': 3, 'title': 'Interstellar', 'genres': ['Drama', 'Sci-Fi'], 'year': 2014}
+    {'id': 1, 'title': '黑客帝国 (The Matrix)', 'genres': ['动作', '科幻'], 'year': 1999},
+    {'id': 2, 'title': '盗梦空间 (Inception)', 'genres': ['动作', '悬疑'], 'year': 2010},
+    {'id': 3, 'title': '星际穿越 (Interstellar)', 'genres': ['剧情', '科幻'], 'year': 2014}
 ]
 
-# Add documents to the 'movies' index
+# 向 'movies' 索引添加文档
 task = client.index('movies').add_documents(movies)
 
-# Wait for indexing to complete
+# 等待异步建索任务完成
 client.wait_for_task(task.task_uid)
 ```
 
-## 4. Search
+## 4. 执行搜索
 
 ```python
 results = client.index('movies').search('matrix')
 
 print(results['hits'])
-# [{'id': 1, 'title': 'The Matrix', 'genres': ['Action', 'Sci-Fi'], 'year': 1999}]
 ```
 
-## 5. Search with filters
+## 5. 结合过滤器检索
 
-First, configure filterable attributes:
+首先配置可过滤属性：
 
 ```python
 client.index('movies').update_filterable_attributes(['genres', 'year'])
 ```
 
-Then search with filters:
+然后执行带过滤条件的搜索：
 
 ```python
 results = client.index('movies').search('', {
-    'filter': 'genres = "Sci-Fi" AND year > 2000'
+    'filter': 'genres = "科幻" AND year > 2000'
 })
 ```
 
-## Full example
+## 完整代码示例
 
 ```python
 import meilisearch
@@ -90,39 +89,38 @@ client = meilisearch.Client(
     os.environ.get('MEILISEARCH_KEY')
 )
 
-# Add documents
+# 添加数据
 movies = [
-    {'id': 1, 'title': 'The Matrix', 'genres': ['Action', 'Sci-Fi'], 'year': 1999},
-    {'id': 2, 'title': 'Inception', 'genres': ['Action', 'Thriller'], 'year': 2010},
-    {'id': 3, 'title': 'Interstellar', 'genres': ['Drama', 'Sci-Fi'], 'year': 2014}
+    {'id': 1, 'title': '黑客帝国 (The Matrix)', 'genres': ['动作', '科幻'], 'year': 1999},
+    {'id': 2, 'title': '盗梦空间 (Inception)', 'genres': ['动作', '悬疑'], 'year': 2010},
+    {'id': 3, 'title': '星际穿越 (Interstellar)', 'genres': ['剧情', '科幻'], 'year': 2014}
 ]
 
 task = client.index('movies').add_documents(movies)
 client.wait_for_task(task.task_uid)
 
-# Search
+# 执行搜索
 results = client.index('movies').search('inter')
 print(results['hits'])
 ```
 
-## Next steps
+## 下一步
 
 <CardGroup cols={2}>
-  <Card title="Full-text search" icon="magnifying-glass" href="/capabilities/full_text_search/relevancy/relevancy">
-    Configure ranking and relevancy
+  <Card title="全文检索核心" icon="magnifying-glass" href="/capabilities/full_text_search/relevancy/relevancy">
+    配置相关度打分与多维度排序规则
   </Card>
-  <Card title="Filtering" icon="filter" href="/capabilities/filtering_sorting_faceting/getting_started">
-    Add filters and facets
+  <Card title="过滤器与分面" icon="filter" href="/capabilities/filtering_sorting_faceting/getting_started">
+    添加高级布尔过滤与电商分面统计
   </Card>
-  <Card title="AI-powered search" icon="brain" href="/capabilities/hybrid_search/getting_started">
-    Add semantic search
+  <Card title="AI 语义搜索" icon="brain" href="/capabilities/hybrid_search/getting_started">
+    开启向量嵌入器实现混合检索
   </Card>
-  <Card title="API reference" icon="code" href="/reference/api/search/search-with-post">
-    Explore all search parameters
+  <Card title="API 参考手册" icon="code" href="/reference/api/search/search-with-post">
+    探索全部搜索控制参数与语法
   </Card>
 </CardGroup>
 
-## Resources
+## 相关资源
 
-- [meilisearch-python on GitHub](https://github.com/meilisearch/meilisearch-python)
-- [SDK documentation](https://github.com/meilisearch/meilisearch-python#readme)
+- [meilisearch-python GitHub 官方仓库](https://github.com/meilisearch/meilisearch-python)
