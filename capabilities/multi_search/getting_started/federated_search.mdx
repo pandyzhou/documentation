@@ -1,21 +1,21 @@
 ---
-title: Federated search
-sidebarTitle: Federated search
-description: In this tutorial you will see how to perform a query searching multiple indexes at the same time to obtain a single list of results.
+title: 跨索引联合搜索实战 (Federated search)
+sidebarTitle: 联合搜索实战
+description: 学习如何在 Meilisearch 中同时并发检索多个不同索引，并将命中结果智能归并为一个统一的混排列表。
 ---
 
 import CodeSamplesFederatedSearchMultiSearch1 from '/snippets/generated-code-samples/code_samples_federated_search_multi_search_1.mdx';
 import CodeSamplesFederatedSearchMultiSearchWeight1 from '/snippets/generated-code-samples/code_samples_federated_search_multi_search_weight_1.mdx';
 
-Meilisearch allows you to make multiple search requests at the same time with the `/multi-search` endpoint. A federated search is a multi-search that returns results from multiple queries in a single list.
+Meilisearch 允许通过 `/multi-search` 端点同时发起多组检索操作。**联合搜索（Federated search）**是一种特殊形态的多索引搜索，它将跨多个不同索引检索到的结果聚合打分，最终作为一个统一的大列表返回。
 
-In this tutorial you will see how to create separate indexes containing different types of data from a CRM application. You will then perform a query searching all these indexes at the same time to obtain a single list of results.
+本教程以 CRM 客户关系管理系统为例，演示如何为不同类型的数据建立独立索引，并通过单次联合搜索一键搞定全库检索。
 
-## Create three indexes
+## 场景准备：创建三个独立索引
 
-Download the following datasets: <a href="https://www.meilisearch.com/docs/assets/datasets/crm-chats.json" download="crm-chats.json">`crm-chats.json`</a>, <a href="https://www.meilisearch.com/docs/assets/datasets/crm-profiles.json" download="crm-profiles.json">`crm-profiles.json`</a>, and <a href="https://www.meilisearch.com/docs/assets/datasets/crm-tickets.json" download="crm-tickets.json">`crm-tickets.json`</a> containing data from a fictional CRM application.
+下载以下三个模拟 CRM 业务数据集：<a href="https://www.meilisearch.com/docs/assets/datasets/crm-chats.json" download="crm-chats.json">`crm-chats.json`（沟通聊天记录）</a>、<a href="https://www.meilisearch.com/docs/assets/datasets/crm-profiles.json" download="crm-profiles.json">`crm-profiles.json`（客户档案）</a> 以及 <a href="https://www.meilisearch.com/docs/assets/datasets/crm-tickets.json" download="crm-tickets.json">`crm-tickets.json`（售后工单）</a>。
 
-Add the datasets to Meilisearch and create three separate indexes, `profiles`, `chats`, and `tickets`:
+分别创建 `profiles`、`chats` 和 `tickets` 三个独立的索引并导入数据：
 
 <CodeGroup>
 
@@ -27,17 +27,17 @@ curl -X POST 'MEILISEARCH_URL/indexes/tickets' -H 'Content-Type: application/jso
 
 </CodeGroup>
 
-[Use the tasks endpoint](/capabilities/indexing/tasks_and_batches/monitor_tasks) to check the indexing status. Once Meilisearch successfully indexed all three datasets, you are ready to perform a federated search.
+通过任务接口确认所有数据集建索就绪后，即可开启联合搜索。
 
-## Perform a federated search
+## 发起联合搜索
 
-When you are looking for Natasha Nguyen's email address in your CRM application, you may not know whether you will find it in a chat log, among the existing customer profiles, or in a recent support ticket. In this situation, you can use federated search to search across all possible sources and receive a single list of results.
+假设业务员在系统中寻找客户 Natasha Nguyen 的电子邮箱，她并不知道这个信息记录在聊天记录、客户主档案还是最近的一张工单里。此时，联合搜索能够同时扫描这三个来源并汇总为一份清晰的清单。
 
-Use the `/multi-search` endpoint with the `federation` parameter to query the three indexes simultaneously:
+在 `/multi-search` 请求中传入 `federation` 参数：
 
 <CodeSamplesFederatedSearchMultiSearch1 />
 
-Meilisearch should respond with a single list of search results:
+Meilisearch 会返回一个合并后的总命中列表，每篇文档都会带上 `_federation` 元数据标明其所属的具体索引：
 
 <CodeGroup>
 
@@ -66,47 +66,38 @@ Meilisearch should respond with a single list of search results:
 
 </CodeGroup>
 
-## Promote results from a specific index
+## 倾斜特定索引的权重 (Weights)
 
-Since this is a CRM application, users have profiles with their preferred contact information. If you want to search for Riccardo Rotondo's preferred email, you can boost documents in the `profiles` index.
-
-Use the `weight` property of the `federation` parameter to boost results coming from a specific query:
+如果业务上更希望“官方客户档案”排在“琐碎聊天记录”前面，你可以为不同的子查询配置 `weight`（权重乘数）：
 
 <CodeSamplesFederatedSearchMultiSearchWeight1 />
 
-This request will lead to results from the query targeting `profile` ranking higher than documents from other queries:
+在上述配置下，来自 `profiles` 索引的匹配项被打上了更高的系数权重，优先排列在首屏：
 
 <CodeGroup>
 
 ```json
 {
   "hits": [
-  {
-    "id": 1,
-    "name": "Riccardo Rotondo",
-    "email": "riccardo.rotondo@example.com",
+    {
+      "id": 1,
+      "name": "Riccardo Rotondo",
+      "email": "riccardo.rotondo@example.com",
       "_federation": {
         "indexUid": "profiles",
         "queriesPosition": 1
       }
     },
     …
-  ],
-  "processingTimeMs": 0,
-  "limit": 20,
-  "offset": 0,
-  "estimatedTotalHits": 3,
-  "semanticHitCount": 0
+  ]
 }
 ```
 
 </CodeGroup>
 
-## Paginate federated results
+## 联合搜索分页支持
 
-By default, federated search returns a limited number of results using `offset` and `limit`. If you need exhaustive pagination, use the `federation.page` and `federation.hitsPerPage` parameters instead. These work like traditional page-based pagination across the merged result set.
-
-Send a federated search request with pagination:
+在 `federation` 对象中传入 `page` 与 `hitsPerPage`，即可跨多个索引进行经典的精准按页翻页：
 
 <CodeGroup>
 
@@ -130,42 +121,13 @@ curl \
 
 </CodeGroup>
 
-The response includes `page`, `hitsPerPage`, and `totalPages` instead of `offset`, `limit`, and `estimatedTotalHits`:
+响应中将包含针对全局合并后数据的 `page`、`hitsPerPage`、`totalHits` 与 `totalPages`，极其便于直接驱动前端分页组件。
 
-<CodeGroup>
+## 跨索引自动去重 (`federation.distinct`)
 
-```json
-{
-  "hits": [ … ],
-  "processingTimeMs": 1,
-  "page": 2,
-  "hitsPerPage": 10,
-  "totalHits": 25,
-  "totalPages": 3
-}
-```
+如果同一个客户既有档案又有聊天记录，你不希望她在合并列表里被多条重复刷屏。可以在 `federation` 级别配置 `distinct` 参数：
 
-</CodeGroup>
-
-This makes it straightforward to build paginated UIs that display merged results from multiple indexes.
-
-## Deduplicate results across indexes
-
-The same client may appear in a profile, a chat log, and a support ticket at once. Use the `distinct` property of the `federation` parameter to keep at most one result per value of a given attribute, computed across every query in the request.
-
-`distinct` requires the attribute to be filterable in each participating index, so add `client_name` to `filterableAttributes` for all three indexes first:
-
-<CodeGroup>
-
-```sh
-curl -X PUT 'MEILISEARCH_URL/indexes/profiles/settings/filterable-attributes' -H 'Content-Type: application/json' -H 'Authorization: Bearer MEILISEARCH_KEY' --data-binary '["client_name"]' &&
-curl -X PUT 'MEILISEARCH_URL/indexes/chats/settings/filterable-attributes' -H 'Content-Type: application/json' -H 'Authorization: Bearer MEILISEARCH_KEY' --data-binary '["client_name"]' &&
-curl -X PUT 'MEILISEARCH_URL/indexes/tickets/settings/filterable-attributes' -H 'Content-Type: application/json' -H 'Authorization: Bearer MEILISEARCH_KEY' --data-binary '["client_name"]'
-```
-
-</CodeGroup>
-
-Then set `distinct` inside `federation`:
+首先确保三个索引中都把去重字段（如 `client_name`）声明为 `filterableAttributes`，然后在请求中加上：
 
 <CodeGroup>
 
@@ -188,32 +150,4 @@ curl \
 
 </CodeGroup>
 
-Natasha Nguyen now occupies a single entry in the merged list instead of one per source.
-
-Federation-level `distinct` behaves differently from the [index-level distinct attribute](/capabilities/full_text_search/how_to/configure_distinct_attribute) in three ways:
-
-- It applies across every query in the request, whatever index or remote they target
-- It overrides the distinct attribute configured on each participating index
-- Setting `distinct` on an individual query and on `federation` at the same time returns an HTTP 400 error
-
-<Note>
-When queries reach remote instances, Meilisearch computes facet distribution as accurately as it can but cannot guarantee exact counts, because the distinct computation is not applied to documents held on every remote.
-</Note>
-
-## Conclusion
-
-You have created three indexes, then performed a federated multi-index search to receive all results in a single list. You then used `weight` to boost results from the index most likely to contain the information you wanted, paginated through merged results using `federation.page` and `federation.hitsPerPage`, and collapsed duplicate matches with `federation.distinct`.
-
-## Next steps
-
-<CardGroup cols={2}>
-  <Card title="Boost results across indexes" href="/capabilities/multi_search/how_to/boost_results_across_indexes">
-    Fine-tune result ranking when combining results from multiple indexes.
-  </Card>
-  <Card title="Build a unified search bar" href="/capabilities/multi_search/how_to/build_unified_search_bar">
-    Create a single search interface that queries multiple indexes at once.
-  </Card>
-  <Card title="Multi-search overview" href="/capabilities/multi_search/overview">
-    Learn about multi-search capabilities and when to use them.
-  </Card>
-</CardGroup>
+每个客户在合并后的结果集中仅会保留最相关的一篇代表文档。

@@ -1,46 +1,46 @@
 ---
-title: Multi-search
-sidebarTitle: Overview
-description: Query multiple indexes in a single API request, with options to receive separate result lists or a single merged (federated) result set.
+title: 多索引搜索与联合搜索 (Multi-search)
+sidebarTitle: 概览
+description: 在单次 API 请求中并发检索多个独立索引，支持分索引独立返回结果或统一归并混排 (Federated Search)。
 ---
 
-Multi-search lets you query multiple indexes in one HTTP request. This is faster and more efficient than sending separate requests for each index.
+多索引搜索（Multi-search）允许你在**单次 HTTP 请求中同时检索多个索引**。与向每个索引分别连续发送多次 HTTP 请求相比，这种方式显著降低了客户端网络开销与请求延迟。
 
-## Two modes of multi-search
+## 两种主要模式
 
-| Mode | Description | Use case |
-|------|-------------|----------|
-| **Multi-index search** | Returns a separate result list for each queried index | Search bar with categorized sections (products, articles, users) |
-| **Federated search** | Merges results from all indexes into one ranked list | Unified search across content types |
+| 模式 | 核心描述 | 典型业务场景 |
+| :--- | :--- | :--- |
+| **多索引并发搜索 (Multi-index search)** | 为每个被检索的索引返回独立的结果数组列表 | 搜索框展示分类卡片（如分别展示：匹配商品、匹配文章、匹配用户） |
+| **联合搜索 (Federated search)** | 将来自所有索引的命中结果按权重综合打分，**归并混排为一个统一的列表** | 跨数据类型的大一统全局搜索 |
 
-## How multi-search works
+## 工作原理
 
-Send an array of search queries to the `/multi-search` endpoint. Each query can target a different index with its own [filters](/capabilities/filtering_sorting_faceting/getting_started), [sorting](/capabilities/filtering_sorting_faceting/how_to/sort_results), and parameters.
+向 `/multi-search` 端点发送包含多组独立检索条件的请求体。每组查询可以指向完全不同的索引，拥有各自独立的[过滤器 (Filters)](/capabilities/filtering_sorting_faceting/getting_started)、[排序 (Sorting)](/capabilities/filtering_sorting_faceting/how_to/sort_results)与搜索参数。
 
-In federated mode, Meilisearch merges and re-ranks results from all indexes using configurable weights, giving you control over which index's results appear higher.
+在联合搜索（Federated）模式下，Meilisearch 通过可配置的权重（Weights）机制，将多个索引的文档进行重加权打分并统一排序，让你完全掌控哪个索引的结果排在更上方。
 
-## Error handling
+## 异常与错误处理
 
 <Warning>
-Multi-search requests fail fast. If Meilisearch encounters an error when handling any of the queries in a multi-search request, it immediately stops processing the request and returns an error message. The returned message only addresses the first error encountered, so earlier queries may succeed but no results are returned until every query is valid.
+多索引请求采用**快速失败（Fail-fast）**策略。如果在处理多索引请求中的任何一组子查询时遭遇错误（如字段未在对应索引中配置为 filterable），Meilisearch 会立即终止整个请求并返回报错。返回的错误信息仅指向遇到的第一个错误。因此，只有当列表中的每组查询全部合法时，才会返回搜索结果。
 </Warning>
 
-## Next steps
+## 下一步
 
 <CardGroup cols={2}>
-  <Card title="Multi-index search" href="/capabilities/multi_search/getting_started/multi_search">
-    Query multiple indexes with separate result lists
+  <Card title="多索引并发搜索" href="/capabilities/multi_search/getting_started/multi_search">
+    单次请求查询多个索引并分别获取各自分组结果
   </Card>
-  <Card title="Federated search" href="/capabilities/multi_search/getting_started/federated_search">
-    Merge results from multiple indexes into one list
+  <Card title="联合搜索实战" href="/capabilities/multi_search/getting_started/federated_search">
+    将多个索引的结果按权重合并混排为一个总列表
   </Card>
-  <Card title="Boost results" href="/capabilities/multi_search/how_to/boost_results_across_indexes">
-    Use federation weights to prioritize one index over another
+  <Card title="跨索引权重加权" href="/capabilities/multi_search/how_to/boost_results_across_indexes">
+    使用权重系数优先置顶特定索引的命中结果
   </Card>
-  <Card title="Unified search bar" href="/capabilities/multi_search/how_to/build_unified_search_bar">
-    Build a single search bar across content types
+  <Card title="打造全站大一统搜索栏" href="/capabilities/multi_search/how_to/build_unified_search_bar">
+    搭建跨越各类业务实体的全局统一搜索框
   </Card>
-  <Card title="Semantic multi-search" href="/capabilities/multi_search/how_to/combine_text_and_image_search">
-    Combine text and image semantic search across indexes
+  <Card title="图文语义多索引搜索" href="/capabilities/multi_search/how_to/combine_text_and_image_search">
+    结合文本与图像跨模态模型实现多源检索
   </Card>
 </CardGroup>
