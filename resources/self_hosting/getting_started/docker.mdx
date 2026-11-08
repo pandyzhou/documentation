@@ -1,29 +1,30 @@
 ---
-title: Using Meilisearch with Docker
-description: Learn how to use Docker to download and run Meilisearch, configure its behavior, and manage your Meilisearch data.
+title: 使用 Docker 运行 Meilisearch
+sidebarTitle: Docker 部署
+description: 学习如何使用 Docker 镜像下载和运行 Meilisearch、配置环境变量并实现数据持久化挂载与备份。
 ---
 
-In this guide you will learn how to use Docker to download and run Meilisearch, configure its behavior, and manage your Meilisearch data.
+在本指南中，你将学习如何通过 Docker 拉取并运行 Meilisearch、传入参数配置引擎，以及如何安全地持久化管理你的索引数据。
 
-Docker is a tool that bundles applications into containers. Docker containers ensure your application runs the same way in different environments. When using Docker for development, we recommend following [the official instructions to install Docker Desktop](https://docs.docker.com/get-docker/).
+Docker 容器能够确保应用程序在不同开发机器与服务器环境之间保持完全一致的行为。本地开发建议参考 [Docker Desktop 官方安装指引](https://docs.docker.com/get-docker/)。
 
-## Download Meilisearch with Docker
+## 下载 Meilisearch Docker 镜像
 
-Docker containers are distributed in images. To use Meilisearch, use the `docker pull` command to download a Meilisearch image:
+通过 `docker pull` 命令下载官方镜像：
 
 ```sh
 docker pull getmeili/meilisearch:latest
 ```
 
-Meilisearch deploys a new Docker image with every release of the engine. Each image is tagged with the corresponding Meilisearch version, indicated in the above example by the text following the `:` symbol. You can see [the full list of available Meilisearch Docker images](https://hub.docker.com/r/getmeili/meilisearch/tags#!) on Docker Hub.
+Meilisearch 每次发布新版本时都会同步推送新的 Docker 镜像。每个镜像都打上了对应的版本 Tag。你可以在 Docker Hub 上查看 [所有受支持的 Meilisearch 镜像版本列表](https://hub.docker.com/r/getmeili/meilisearch/tags#!)。
 
 <Warning>
-The `latest` tag will always download the most recent Meilisearch release. Meilisearch advises against using it, as it might result in different machines running different images if significant time passes between setting up each one of them.
+`latest` 标签始终会拉取最新的版本。在生产环境中，**强烈建议锁定具体版本号（例如 `v1.11` 或 `v1.12`）**，避免不同服务器因拉取镜像时间不同而导致运行了不一致的版本。
 </Warning>
 
-## Run Meilisearch with Docker
+## 启动 Meilisearch 容器
 
-After completing the previous step, use `docker run` to launch the Meilisearch image:
+拉取完成后，使用 `docker run` 命令启动容器：
 
 ```sh
 docker run -it --rm \
@@ -32,43 +33,43 @@ docker run -it --rm \
   getmeili/meilisearch:latest
 ```
 
-### Configure Meilisearch
+### 配置启动参数
 
-Meilisearch accepts a number of instance options during launch. You can configure these in two ways: environment variables and CLI arguments. Note that some options are only available as CLI arguments. [Consult our configuration reference for more details](/resources/self_hosting/configuration/overview).
+Meilisearch 在启动时支持丰富的配置项，你可以通过两种方式传入：环境变量（Environment Variables）或命令行参数（CLI Flags）。[查阅完整配置参考手册了解详情](/resources/self_hosting/configuration/overview)。
 
-#### Passing instance options with environment variables
+#### 方式一：通过环境变量配置（最推荐）
 
-To pass environment variables to Docker, add the `-e` argument to `docker run`. The example below launches Meilisearch with a master key:
+向 `docker run` 附加 `-e` 参数。以下示例配置了主密钥（Master Key）：
 
 ```sh
 docker run -it --rm \
   -p 7700:7700 \
-  -e MEILI_MASTER_KEY='MASTER_KEY'\
+  -e MEILI_MASTER_KEY='YOUR_STRONG_MASTER_KEY' \
   -v $(pwd)/meili_data:/meili_data \
   getmeili/meilisearch:latest
 ```
 
-#### Passing instance options with CLI arguments
+#### 方式二：通过命令行参数配置
 
-If you want to pass command-line arguments to Meilisearch with Docker, you must add a line to the end of your `docker run` command explicitly launching the `meilisearch` binary:
+如果你需要直接传递 CLI 参数，在 `docker run` 末尾显式调用 `meilisearch` 启动命令：
 
 ```sh
 docker run -it --rm \
   -p 7700:7700 \
   -v $(pwd)/meili_data:/meili_data \
   getmeili/meilisearch:latest \
-  meilisearch --master-key="MASTER_KEY"
+  meilisearch --master-key="YOUR_STRONG_MASTER_KEY"
 ```
 
-## Managing data
+## 数据管理与持久化
 
-When using Docker, your working directory is `/meili_data`. This means the location of your database file is `/meili_data/data.ms`.
+在 Docker 容器内部，默认的工作目录为 `/meili_data`。这意味着数据库的核心文件存储在容器内的 `/meili_data/data.ms` 路径下。
 
-### Data persistency
+### 数据卷持久化挂载 (-v)
 
-By default, data written to a Docker container is deleted every time the container stops running. This data includes your indexes and the documents they store.
+默认情况下，写入 Docker 容器可写层的数据会在容器停止或删除时彻底丢失（包括你的全部索引和文档）。
 
-To keep your data intact between reboots, specify a dedicated volume by running Docker with the `-v` command-line option:
+**为了在容器重启后数据依然完好无损，必须使用 `-v` 参数挂载宿主机目录或 Docker 数据卷**：
 
 ```sh
 docker run -it --rm \
@@ -77,33 +78,30 @@ docker run -it --rm \
   getmeili/meilisearch:latest 
 ```
 
-The example above uses `$(pwd)/meili_data`, which is a directory in the host machine. Depending on your OS, mounting volumes from the host to the container might result in performance loss and is only recommended when developing your application.
+上述命令将当前目录下的 `meili_data` 映射到容器内的 `/meili_data`。
 
-### Generating dumps and updating Meilisearch
+### 导出与导入转储包 (Dumps) 实现跨版本升级
 
-To export a dump, [use the create dump endpoint as described in our dumps guide](/resources/self_hosting/data_backup/dumps). Once the task is complete, you can access the dump file in `/meili_data/dumps` inside the volume you passed with `-v`.
+当需要进行 Meilisearch 跨大版本升级时，必须使用 Dump：
 
-To import a dump, use Meilisearch's `--import-dump` command-line option and specify the path to the dump file. Make sure the path points to a volume reachable by Docker:
+1. **导出 Dump**：调用创建转储接口，生成的文件将保存在挂载目录的 `/meili_data/dumps` 下。
+2. **导入 Dump**：在启动新版本容器时，传入 `--import-dump` 参数：
 
 ```sh
 docker run -it --rm \
   -p 7700:7700 \
   -v $(pwd)/meili_data:/meili_data \
   getmeili/meilisearch:latest \
-  meilisearch --import-dump /meili_data/dumps/20200813-042312213.dump
+  meilisearch --import-dump /meili_data/dumps/20261108-042312213.dump
 ```
 
-Note that exporting and importing dumps require using command-line arguments. [For more information on how to run Meilisearch with CLI options and Docker, refer to this guide's relevant section.](#passing-instance-options-with-cli-arguments)
-
 <Warning>
-If you are storing your data in a persistent volume as instructed in [the data persistency section](#data-persistency), you must delete `/meili_data/data.ms` in that volume before importing a dump.
+如果挂载的数据卷中已经存在旧版的 `data.ms`，在导入新 Dump 之前**必须先删除或重命名旧的 `/meili_data/data.ms` 目录**。
 </Warning>
 
-Use dumps to migrate data between different Meilisearch releases. [Read more about updating Meilisearch in our dedicated guide.](/resources/migration/updating)
+### 快照备份 (Snapshots)
 
-### Snapshots
-
-To generate a Meilisearch snapshot with Docker, launch Meilisearch with `--schedule-snapshot` and `--snapshot-dir`:
+定时快照用于单节点快速容灾备份：
 
 ```sh
 docker run -it --rm \
@@ -113,9 +111,7 @@ docker run -it --rm \
   meilisearch --schedule-snapshot --snapshot-dir /meili_data/snapshots
 ```
 
-`--snapshot-dir` should point to a folder inside the Docker working directory for Meilisearch, `/meili_data`. Once generated, snapshots will be available in the configured directory.
-
-To import a snapshot, launch Meilisearch with the `--import-snapshot` option:
+如需从快照镜像还原启动：
 
 ```sh
 docker run -it --rm \
@@ -124,5 +120,3 @@ docker run -it --rm \
   getmeili/meilisearch:latest \
   meilisearch --import-snapshot /meili_data/snapshots/data.ms.snapshot
 ```
-
-Use snapshots for backup or when migrating data between two Meilisearch instances of the same version. [Read more about snapshots in our guide.](/resources/self_hosting/data_backup/snapshots)

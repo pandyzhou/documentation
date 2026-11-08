@@ -1,49 +1,49 @@
 ---
-title: Self-hosting Meilisearch
-sidebarTitle: Overview
-description: Learn about self-hosting Meilisearch, from installation to production deployment, security, and backups.
+title: 自托管 Meilisearch (Self-hosting)
+sidebarTitle: 自托管概览
+description: 了解自托管 Meilisearch 的全生命周期，涵盖从本地安装到生产环境部署、安全防护、内存调优与数据备份。
 ---
 
-Meilisearch is a single binary with no external dependencies. You can run it on any Linux, macOS, or Windows machine, on bare metal or in containers.
+Meilisearch 是一个不依赖任何外部组件的单一独立二进制程序。你可以在任何 Linux、macOS 或 Windows 机器上运行它，支持物理裸机运行或容器化部署。
 
 <Tip>
-[Meilisearch Cloud](https://www.meilisearch.com/cloud?utm_campaign=oss&utm_source=docs&utm_medium=self-hosting-overview) is the recommended way to use Meilisearch. It handles provisioning, scaling, security, and updates for you. Self-hosting gives you full control over your infrastructure.
+[Meilisearch Cloud](https://www.meilisearch.com/cloud?utm_campaign=oss&utm_source=docs&utm_medium=self-hosting-overview) 是官方推荐的全托管运行方案。它会自动为你处理硬件资源配置、弹性扩缩容、安全合规与版本升级。自托管则赋予你对自己底层基础设施的 100% 绝对控制权。
 </Tip>
 
-## When to self-host
+## 为什么选择自托管？
 
-Self-hosting Meilisearch makes sense when you need:
+自托管部署在以下业务场景中尤为契合：
 
-- **Full infrastructure control**: choose your own servers, network configuration, and storage
-- **Data residency compliance**: keep data in specific geographic regions or on-premises
-- **Custom deployment pipelines**: integrate Meilisearch into existing CI/CD and orchestration workflows
-- **Air-gapped environments**: run Meilisearch in networks without internet access
+- **完全掌控基础设施**：自由选择服务器提供商、内网拓扑结构与存储硬件配置
+- **严格的数据合规与隐私常驻**：将敏感数据保存在特定地理管辖区域的机房或企业本地物理内网
+- **无缝融合现有发布流水线**：将 Meilisearch 作为标准服务纳入现有的 Kubernetes、Docker Compose 或 CI/CD 编排体系
+- **离线与断网运行环境（Air-gapped）**：在完全断开外网连接的保密内网环境中平稳运行
 
-## What you'll need
+## 硬件与环境准备
 
-- A server running a [supported operating system](/resources/self_hosting/getting_started/install_locally#supported-operating-systems)
-- At least 256 MB of RAM (more for larger datasets, see [performance guide](/resources/self_hosting/performance/ram_multithreading))
-- The Meilisearch binary, available via [direct download, Docker, Homebrew, or APT](/resources/self_hosting/getting_started/install_locally)
+- 一台运行着[受支持操作系统](/resources/self_hosting/getting_started/install_locally#supported-operating-systems)的服务器
+- 至少 256 MB 内存（大规模数据集请参考[性能与内存指南](/resources/self_hosting/performance/ram_multithreading)）
+- Meilisearch 官方二进制，支持通过 [直接下载、Docker 容器、Homebrew 或 APT 软件包](/resources/self_hosting/getting_started/install_locally) 获取
 
-For production deployments, you will also need:
+在生产环境正式上线时，你通常还需要配置：
 
-- A reverse proxy (Nginx or Caddy) for HTTPS termination
-- A process manager (systemd) to keep Meilisearch running
-- A [master key](/resources/self_hosting/security/overview) for authentication
+- 反向代理服务（如 Nginx、Caddy 或 Traefik）用于处理 HTTPS 证书终止
+- 守护进程管理（如 systemd 或 Docker restart 策略）保障崩溃自动拉起
+- 配置强密码 [主密钥 (Master key)](/resources/self_hosting/security/overview) 保障 API 鉴权安全
 
-## Next steps
+## 下一步
 
 <CardGroup cols={2}>
-  <Card title="Quick start" icon="rocket" href="/resources/self_hosting/getting_started/quick_start">
-    Install Meilisearch, add documents, and run your first search.
+  <Card title="快速上手" icon="rocket" href="/resources/self_hosting/getting_started/quick_start">
+    安装 Meilisearch、导入测试数据并完成第一次检索
   </Card>
-  <Card title="Deploy to production" icon="server" href="/resources/self_hosting/deployment/overview">
-    Deploy Meilisearch on AWS, GCP, or DigitalOcean.
+  <Card title="生产环境部署" icon="server" href="/resources/self_hosting/deployment/overview">
+    在云主机、虚拟机或专属服务器上安全上线
   </Card>
-  <Card title="Secure your instance" icon="lock" href="/resources/self_hosting/security/overview">
-    Set up API keys, HTTPS, and access control.
+  <Card title="安全防护与加固" icon="lock" href="/resources/self_hosting/security/overview">
+    配置 Master Key、派生子密钥与 HTTPS 加密连接
   </Card>
-  <Card title="Configuration" icon="gear" href="/resources/self_hosting/configuration/overview">
-    Configure Meilisearch with CLI options, environment variables, or a config file.
+  <Card title="参数配置参考" icon="gear" href="/resources/self_hosting/configuration/overview">
+    查阅启动参数、环境变量与配置文件的完整清单
   </Card>
 </CardGroup>
