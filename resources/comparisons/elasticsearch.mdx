@@ -1,82 +1,58 @@
 ---
-title: Meilisearch vs Elasticsearch
-sidebarTitle: Elasticsearch
-description: Compare Meilisearch and Elasticsearch to find the right search solution for your project. Learn key differences in setup, performance, and use cases.
+title: Meilisearch 与 Elasticsearch 深度对比
+sidebarTitle: Elasticsearch 对比
+description: 全方位对比 Meilisearch 与 Elasticsearch：从架构复杂度、性能表现到硬件资源开销，为你的项目挑选最佳搜索方案。
 ---
 
-Elasticsearch is a distributed search and analytics engine built on Apache Lucene, created by Shay Banon and first released in 2010. It has become the dominant force in enterprise search, powering everything from website search to log analytics for organizations worldwide.
+Elasticsearch 是由 Shay Banon 基于 Apache Lucene 构建并于 2010 年首次发布的分布式搜索与分析引擎。在过去十几年中，它已成为企业级搜索与日志分析领域的绝对霸主，支撑着全球海量网站与大型组织的分析基础设施。
 
-## Quick comparison
+## 核心维度速查表
 
-|  | Meilisearch | Elasticsearch |
-|---|:---:|:---:|
-| **Primary focus** | Fast, relevant search | Full-text search & analytics |
-| **Setup complexity** | Ready in minutes | Steep learning curve |
-| **Performance** | Under 50ms out-of-the-box | Fast with proper tuning |
-| **Resource usage** | Lightweight | Memory-intensive |
-| **Pricing** | Free OSS, affordable cloud plans | Free OSS, paid cloud tiers |
-| **Open source** | MIT (CE) / BUSL-1.1 (EE) | AGPLv3 / SSPL / ELv2 |
-| **Best for** | App/site search | Large-scale analytics |
+| 对比维度 | Meilisearch | Elasticsearch (ES) |
+| :--- | :---: | :---: |
+| **主要定位** | 极致快速、开箱即用的前端交互式搜索 | 分布式全文检索与海量数据统计分析 |
+| **部署与上手门槛** | 几分钟快速起步，单一二进制 | 学习曲线陡峭，配置极其繁琐 |
+| **开箱即用性能** | 零调优下原生亚 50ms 极速响应 | 必须由专家进行复杂的 JVM 与分词调优 |
+| **硬件资源开销** | 极度轻量（内存占用几十至几百 MB） | 内存消耗大户（JVM 堆内存动辄数 GB 起步） |
+| **开源协议** | MIT (社区版) / BUSL-1.1 (企业版) | AGPLv3 / SSPL / ELv2 (非严格 OSI 开源) |
+| **最擅长领域** | App 应用内搜索、独立电商与网站搜索 | PB 级日志聚合分析、可观测性监控平台 |
 
-## What Elasticsearch does well
+## Elasticsearch 的核心长处
 
-### Massive scalability
+### 1. 庞大的海量扩展能力 (PB 级)
+Elasticsearch 专为分布式设计，可水平扩展至数百个节点，轻松应对 PB 级海量日志数据。其经典的分片与副本设计，使其天生适合拥有超大规模数据的跨国企业。
 
-Elasticsearch's distributed architecture can scale horizontally across hundreds of nodes, handling petabytes of data. Its shard-based design enables deployment across clusters of any size, making it suitable for organizations with massive datasets.
+### 2. 极其强悍的实时数据聚合分析 (Aggregations)
+ES 的聚合分析框架不仅能做搜索，还能计算复杂统计指标、构建多层直方图、流水线聚合，完美驱动大型 BI 数据大屏与机器学习分析作业。
 
-### Comprehensive analytics
+### 3. 成熟的 Elastic Stack (ELK) 全家桶生态
+与可视化神器 Kibana、数据管道 Logstash / Beats 深度绑定，并拥有超过 350 个官方驱动，构成了一站式企业级运维与日志可观测性（Observability）平台。
 
-The aggregations framework enables complex real-time analytics beyond simple search. You can compute metrics, create buckets for grouping data, and build pipeline aggregations. This supports use cases from dashboards to machine learning jobs.
+## 什么时候应该坚决选择 Meilisearch？
 
-### Elastic Stack ecosystem
+### 1. 你需要“开箱即用”的高质量搜索体验
+Meilisearch **无需任何复杂配置**，开箱即可提供丝滑的拼写容错、前缀打字即搜和绝佳的相关度。而在 Elasticsearch 中，要达到类似的人性化容错效果，你必须深入钻研复杂的分词分析器（Analyzer）、Mapping 映射类型与 `fuzziness` 模糊匹配参数，并耗费大量时间反复微调。
 
-Elasticsearch integrates with Kibana for visualization, Logstash and Beats for data ingestion, creating a complete observability platform. With over 350 integrations, it can connect to virtually any data source.
+### 2. 你希望将运维成本降到最低
+Elasticsearch 的集群运维是一门高深的学问：分片划分、副本平衡、JVM 堆内存调优、垃圾回收（GC）卡顿与冷热数据生命周期管理，需要专门的资深运维工程师常驻看护。而 Meilisearch 作为一个不依赖 Java 的单一独立二进制文件，维护几乎“零心智负担”。
 
-### Versatility
+### 3. 你的团队没有专门的搜索算法/ES 专家
+Elasticsearch 的 Query DSL 复杂冗长，简单的查询就要写几页 JSON，团队往往要学习数月。而 Meilisearch 采用极简直观的标准 RESTful API，新手工程师仅需半天即可熟练掌握。
 
-Elasticsearch handles multiple use cases: full-text search, log analytics, security monitoring, and application performance management. Its Query DSL offers extensive control over text analysis and searching.
+### 4. 你需要可控且可预测的服务器预算
+在生产环境中运行 Elasticsearch，仅仅为了防止 JVM OOM 崩溃，通常就需要准备 4G/8G 甚至 16G 内存的昂贵云服务器。而 Meilisearch 高效紧凑的 Rust 架构，使得即使在低配轻量云主机上也能稳定高速跑完数万到数百万条数据，大幅削减云上账单。
 
-## When to choose Meilisearch instead
+## 选型决策建议
 
-### You need search that works immediately
+**考虑选择 Elasticsearch 的场景**：
+- 你需要在一个统一平台上集中汇总海量日志、链路追踪与服务器监控指标（ELK 可观测性体系）
+- 你的数据集在数十亿文档以上，且属于典型的大数据离线或准实时分析
+- 你的团队配备了精通 Lucene 与 ES 调优的专职架构师与运维团队
+- 你的核心需求是多维复杂的实时统计报表，而非面向前台用户的瞬时搜索体验
 
-Meilisearch delivers relevant, typo-tolerant search results out-of-the-box without configuration. With Elasticsearch, achieving similar relevancy requires understanding analyzers, mapping types, and the `fuzziness` parameter, along with significant tuning.
+**考虑选择 Meilisearch 的场景**：
+- **网站搜索、移动端 App 搜索、SaaS 平台搜索、电商商城检索或知识库文档**
+- **希望在一天内快速上线具备极致流畅“打字即搜”与“错别字容错”的高颜值搜索框**
+- **团队追求轻量化架构，拒绝沉重的 JVM 容器包袱**
 
-### You want minimal operational overhead
-
-Elasticsearch cluster management requires expertise in shards, replicas, heap sizing, and index lifecycle management. Meilisearch now supports sharding and replication, but can also run as a single binary with no external dependencies, dramatically reducing operational complexity for getting started.
-
-### Your team lacks dedicated search expertise
-
-Elasticsearch's Query DSL has a steep learning curve. Simple tasks often require understanding multiple interconnected systems. Meilisearch's intuitive REST API can be learned in hours, not months.
-
-### You need predictable costs
-
-Elasticsearch's resource requirements can lead to infrastructure costs of thousands per month for production workloads. Meilisearch's efficient architecture reduces hosting costs significantly.
-
-### You want simpler scaling
-
-Meilisearch now supports sharding and replication while remaining simpler to operate than Elasticsearch. For most application search use cases, Meilisearch delivers consistent sub-50ms response times without the operational overhead of Elasticsearch clusters.
-
-## When to choose Elasticsearch
-
-Consider Elasticsearch if:
-
-- You need to search and analyze multiple data types (logs, metrics, documents) in a unified platform
-- Your dataset exceeds billions of documents
-- You have a dedicated operations team with Elasticsearch expertise
-- You need advanced aggregations and analytics beyond search
-- You're building observability, security monitoring, or log analytics solutions
-- You require fine-grained control over every aspect of text analysis
-
-## Migration resources
-
-If you're considering switching from Elasticsearch to Meilisearch:
-
-- [Migrating from Elasticsearch](/resources/migration/elasticsearch_migration) - Step-by-step data export and import guide with query and settings comparison
-- [Meilisearch quick start](/getting_started/first_project) - Get up and running in minutes
-- [Indexing documents](/resources/internals/documents) - Learn how to import your data
-
-<Note>
-Elasticsearch is a registered trademark of Elastic N.V. This comparison is based on publicly available information and our own analysis.
-</Note>
+[从 Elasticsearch 迁移到 Meilisearch 完整步骤指南 →](/resources/migration/elasticsearch_migration)

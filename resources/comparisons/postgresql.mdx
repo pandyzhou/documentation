@@ -1,158 +1,97 @@
 ---
-title: Meilisearch vs PostgreSQL search
-sidebarTitle: PostgreSQL
-description: Compare Meilisearch with PostgreSQL's built-in full-text search and the pgvector extension. Learn when a dedicated search engine outperforms database search.
+title: Meilisearch 与 PostgreSQL 搜索对比
+sidebarTitle: PostgreSQL 对比
+description: 对比 Meilisearch 与 PostgreSQL 原生全文检索（FTS）以及 pgvector 向量扩展。了解独立搜索引擎何时大幅超越传统数据库搜索。
 ---
 
-PostgreSQL includes built-in full-text search capabilities through its `tsvector` and `tsquery` data types, and the [pgvector](https://github.com/pgvector/pgvector) extension adds vector similarity search. While convenient for simple use cases, PostgreSQL's search falls short compared to dedicated search engines for user-facing applications.
+PostgreSQL 通过其内置的 `tsvector` 与 `tsquery` 数据类型提供了原生的全文检索能力，并通过 [pgvector](https://github.com/pgvector/pgvector) 扩展支持了向量相似度检索。对于简单的内部业务场景，这无疑非常便利；但对于面向最终用户的交互式搜索体验，通用关系型数据库与专业搜索引擎之间存在显著的差距。
 
-This page compares Meilisearch with both approaches: PostgreSQL full-text search first, then [vector and hybrid search with pgvector](#vector-and-hybrid-search-pgvector).
+本文全面对比这两种方案：首先对比 PostgreSQL 全文检索（FTS），随后对比 [基于 pgvector 的向量与混合搜索](#vector-and-hybrid-search-pgvector)。
 
-## Quick comparison
+## 核心维度速查表
 
-|  | Meilisearch | PostgreSQL FTS |
-|---|:---:|:---:|
-| **Primary purpose** | Search engine | Relational database |
-| **Typo tolerance** | Built-in | Requires `pg_trgm` extension |
-| **Faceted search** | Native support | Complex to implement |
-| **Language support** | CJK, Arabic, Hebrew + Latin | Limited (no native CJK; third-party extensions exist) |
-| **Search-as-you-type** | Optimized for under 50ms | Not designed for this |
-| **Relevancy tuning** | Configurable ranking rules | Basic `ts_rank` |
-| **Frontend libraries** | InstantSearch compatible | None |
+| 对比维度 | Meilisearch | PostgreSQL FTS 原生检索 |
+| :--- | :---: | :---: |
+| **主要定位** | 专用全文与向量搜索引擎 | 通用关系型数据库 |
+| **错别字容错** | 原生内置（Levenshtein 编辑距离） | 需额外安装 `pg_trgm` 扩展 |
+| **分面统计 (Facets)** | 原生一流 API 支持，毫秒级响应 | 实现极其复杂，高并发下拖垮数据库 |
+| **中文及多语言分词** | CJK 中日韩原生深度优化分词 | 极有限（原生无中文词库，需装第三方扩展） |
+| **打字即搜响应** | 深度优化至 50 毫秒以内 | 架构非为此场景设计 |
+| **相关度规则调优** | 多维度排序流水线灵活定制 | 仅提供基础粗糙的 `ts_rank` |
+| **前端组件生态** | 与 InstantSearch 完美兼容 | 零前端生态 |
 
-## What PostgreSQL FTS does well
+## PostgreSQL 全文检索（FTS）的固有优势
 
-### Single-system simplicity
+### 1. 单系统架构极简
+将搜索留在现有的 PostgreSQL 数据库中，意味着无需搭建和运维额外的独立基础设施。对于简单的后台查询，这大幅降低了架构与运维复杂度。
 
-Keeping search in your existing PostgreSQL database means no additional infrastructure to manage. For simple use cases, this reduces operational complexity.
+### 2. 强事务一致性 (ACID)
+搜索结果与业务数据天然在同一个事务中提交，彻底消除了数据库与独立搜索引擎之间的网络双写延迟和数据不一致痛点。
 
-### Transactional consistency
+### 3. 原生 SQL 表达力
+可以在单条 SQL 语句中将全文检索与普通多表 JOIN、复杂的聚合 GROUP BY 结合在一起。
 
-Search results are always consistent with your primary data, with no synchronization lag between database and search index.
+## 什么时候必须选用 Meilisearch？
 
-### SQL integration
+### 1. 你需要拼写容错（Typo-tolerance）
+PostgreSQL 默认全文搜索无法处理错别字。虽然 `pg_trgm` 能做三元模糊匹配，但缺乏对词距和智能拼写容错的感知。Meilisearch 全自动处理错字，并允许针对字段单独设定容错阈值。
 
-You can combine full-text search with regular SQL queries, joins, and aggregations in a single statement.
+### 2. 你需要电商级分面筛选与统计
+在 PostgreSQL 中实现分面导航极其消耗算力，尤其是同时统计多个分类维度的分布数量时。Meilisearch 提供了专用的底层位图索引，专为分面筛选毫秒级响应而生。
 
-## When to choose Meilisearch instead
+### 3. 你需要极致流畅的“打字即搜”体验
+PostgreSQL 并非为亚 50ms 的即时打字感知而设计。在海量数据集上频繁进行模糊全文打分，会快速耗尽数据库连接池与 CPU。
 
-### You need typo tolerance
+### 4. 你的用户使用非拉丁语系（如中文）
+PostgreSQL 官方不自带中文、日文、韩文的分词字典。Meilisearch 底层分词器原生针对中日韩文本进行了深度的连续切词优化。
 
-PostgreSQL's default full-text search cannot handle misspellings. The `pg_trgm` extension helps but doesn't provide true fuzzy matching with word proximity awareness. Meilisearch handles typos automatically with configurable tolerance per attribute.
+### 5. 你需要面向公众的前端搜索接口
+Meilisearch 提供开箱即用的安全 REST API，支持多级 API 密钥和针对多租户的租户令牌（Tenant Tokens）。直接将 PostgreSQL 暴露给公网具有极大的安全隐患。
 
-### You want faceted search
+### 6. 避免搜索影响核心业务数据库性能
+在大型业务库上跑繁重的模糊全文检索，会直接与主业务事务（如下单、支付、用户登录）争抢 CPU 和内存资源。独立的搜索引擎支持完全解耦、水平弹性扩缩容。
 
-Implementing faceted search in PostgreSQL is complex and resource-intensive, especially with multiple facet types and counts. Meilisearch provides optimized, first-class APIs for facet filtering and counting.
+---
 
-### You need instant search-as-you-type
+## 向量与混合搜索深度较量：Meilisearch vs pgvector
 
-PostgreSQL isn't optimized for the sub-50ms response times needed for search-as-you-type experiences. Full-text search queries on large datasets become costly, especially when ranking results.
+pgvector 扩展为 PostgreSQL 添加了 `vector` 向量数据类型、空间距离比较符以及可选的近似最近邻（ANN）索引。然而，**pgvector 仅仅是一个向量存储与查询层，它不是一个搜索引擎**：所有将裸向量转化为真实搜索体验的脏活累活（向量生成、混合检索打分融合、重排序、带过滤条件的向量搜索），都必须由你在业务代码里手写搭建。而 Meilisearch 开箱即带全套能力。
 
-### Your users speak non-Latin languages
+| 核心特性 | Meilisearch | pgvector |
+| :--- | :---: | :---: |
+| **向量生成流水线** | 内置嵌入器（OpenAI, Cohere, Ollama 等）自动计算 | 必须在应用层自己写代码调用外部模型 |
+| **混合搜索融合** | 单个请求，引擎内部自适应智能融合 | 必须发两次请求，在业务层手动算融合算法 |
+| **打分融合算法** | 绝对相关度归一化得分 (0 到 1) | 基于位次的倒数排名融合（RRF） |
+| **索引与检索算法** | 磁盘优化的 ANN（基于 HNSW 的 Hannoy 引擎） | 默认暴力 KNN，可选 HNSW/IVFFlat |
+| **带过滤条件的向量搜索**| 原生深度集成，过滤与向量并发结合 | 先索引扫描后过滤，极易导致候选集急剧缩水 |
+| **向量量化压缩** | 单配置一键开启 1-bit 二进制量化 | `halfvec`、二进制或稀疏向量（需改表结构） |
+| **向量维度上限** | 无硬性限制（3000+ 维平稳运行） | 2000 维 (全精度), 4000 维 (halfvec) |
 
-PostgreSQL lacks dictionaries for Chinese, Japanese, Korean, and other languages requiring complex tokenization. Meilisearch provides optimized support for these languages with automatic detection.
+### 1. 向量生成流水线：开箱即用 vs 全套自研
+使用 pgvector 时，生成向量完全是你的责任：批量打包、网络重试、API Key 管理、Token 计费以及用户查询时的实时转向量，全部要写在业务代码里。这是一套必须长期维护监控的沉重包袱。
 
-### You want frontend integration
+在 Meilisearch 中，你只需声明一个嵌入器（如 OpenAI 或本地 Ollama），Meilisearch 在建索和用户搜索时**全自动向模型发起调用并缓存向量**。切换模型只需改一行配置，无需重写一行代码。
 
-Search engines like Meilisearch work with InstantSearch libraries, providing pre-built UI components for search bars, facet filters, pagination, and more. PostgreSQL has no equivalent ecosystem.
+### 2. 混合搜索：单次查询 vs 两路自写融合
+在 pgvector 中做混合搜索，你必须先查一次全文索引，再查一次向量索引，然后在应用层用复杂的 SQL CTE 或 Python 脚本手动写 RRF 算法将两份列表合并。
 
-### You need a public-facing search API
+在 Meilisearch 中，混合搜索就是一句带 `hybrid: { semanticRatio, embedder }` 的普通请求，融合逻辑在引擎底层高效完成。
 
-Meilisearch provides a secure REST API designed for public consumption with API key management and tenant tokens for multi-tenancy. Exposing PostgreSQL directly to clients creates security risks and requires building a custom API layer.
+### 3. 为什么带过滤条件的向量搜索在 pgvector 中极易翻车？
+在 pgvector 的 HNSW 索引上使用 `WHERE` 过滤时，**过滤器是在向量扫描之后生效的**。如果一个过滤条件筛掉了 90% 的行，在默认的探查深度下，最终返回的候选结果可能只剩下寥寥几条，造成严重的“召回率断崖式下跌”。
 
-### Scaling is a concern
+而在 Meilisearch 中，过滤引擎与向量引擎深度互通。如果过滤后的候选集较小，底层 Hannoy 会自动自适应切换为精准遍历，确保在任何复杂 Filter 下都能返回满额的高质量结果。
 
-Full-text search queries on large PostgreSQL datasets compete for resources with your primary application workload. A dedicated search engine scales independently and uses data structures optimized for search operations.
+---
 
-### You want better relevancy
+## 什么时候用 pgvector 就足够了？
+- 你需要 100% 召回率的暴力最近邻检索（Brute-force KNN）
+- 你的业务已经维护了成熟的 Python 算法流水线，向量搜索纯粹作为离线内部系统使用，无需对外提供毫秒级交互体验
+- 你坚持所有数据必须在强 ACID 事务内与关系表严格捆绑
 
-PostgreSQL's `ts_rank` only supports attribute weighting. Meilisearch offers configurable ranking rules for typo count, word proximity, exact matches, and custom business logic.
+## 什么时候用 PostgreSQL 原生全文检索就足够了？
+- **数据规模较小（数千到数万行），并发搜索量极低**
+- **搜索仅面向管理后台人员内部查阅，无需拼写容错与高亮展示**
+- **无法增加任何独立容器或额外运维开销**
 
-## Vector and hybrid search: pgvector
-
-The pgvector extension adds a `vector` data type, distance operators, and optional approximate nearest neighbor (ANN) indexes to PostgreSQL. It is a storage and query layer, not a search engine: everything that turns raw vectors into a search experience (embedding generation, hybrid fusion, relevancy scoring, filtered vector search) is left for your application to build. Meilisearch ships all of it out of the box.
-
-|  | Meilisearch | pgvector |
-|---|:---:|:---:|
-| **Embedding generation** | Built-in embedders (OpenAI, Cohere, Mistral, and more) | Application code |
-| **Hybrid search** | Single query, fused inside the engine | Two queries, fused manually |
-| **Score fusion** | Absolute relevancy scores (0 to 1) | Rank-based (RRF) |
-| **Search type** | ANN (HNSW-based, via Hannoy) | Exact KNN by default, optional ANN (HNSW, IVFFlat) |
-| **Filtered vector search** | Native, integrated with the index | Post-filtering on ANN indexes, recall can drop |
-| **Quantization** | Binary quantization | `halfvec`, binary, sparse |
-| **Dimension limits** | No documented limit | 2,000 (`vector`), 4,000 (`halfvec`), 64,000 (binary) |
-
-### Embedding pipeline: built-in vs do-it-yourself
-
-pgvector stores and queries vectors, but it never calls an embedding provider. Generating vectors is entirely your application's responsibility: calling the model API, batching, retries, API key management, and dimension mapping all happen in your code before insertion, and again at query time to embed the user's search terms. This is a permanent piece of infrastructure you have to build, monitor, and maintain.
-
-With Meilisearch, you configure an [embedder declaratively](/capabilities/hybrid_search/how_to/choose_an_embedder): OpenAI, Cohere, Mistral, Voyage, Jina, Hugging Face, Amazon Bedrock, Gemini, or any REST API. Meilisearch calls the model automatically at indexing time and at query time. There is no embedding pipeline to build, and switching models is a settings change, not a code rewrite.
-
-### Hybrid search: one query vs two
-
-With pgvector, hybrid search is not a single query. You run a full-text query and an ANN query separately, then merge the two result lists yourself, either in application code or with SQL CTEs, typically using Reciprocal Rank Fusion (RRF) or a cross-encoder. That fusion logic is search-engine internals you now own, test, and tune.
-
-In Meilisearch, [hybrid search](/capabilities/hybrid_search/overview) is a single query with a `hybrid: { semanticRatio, embedder }` parameter. The fusion of keyword and semantic results happens inside the engine, and one slider controls the balance between the two.
-
-### Score fusion: RRF vs relevancy scores
-
-pgvector's documentation recommends RRF to merge full-text and vector results. RRF combines documents based on their **rank** in each list, not their actual relevance. It assumes the top semantic result is as relevant as the top full-text result, which breaks down whenever one of the two methods performs poorly on a given query.
-
-Meilisearch computes an **absolute relevancy score** between 0 and 1 for every document, comparable across both search methods. It also applies a correction for the typical compression of embedding similarity scores, which often cluster between 0.5 and 0.7 even for unrelated content. A weak semantic match cannot outrank a strong keyword match purely by position: documents win on actual relevance, not on rank arithmetic.
-
-### Exact vs approximate search
-
-pgvector performs exact nearest neighbor search (brute-force KNN) by default. Recall is perfect, but every query scans every vector, so latency grows linearly with your dataset. To make vector search fast at scale, you opt into an ANN index and take on its decisions yourself: HNSW or IVFFlat, index build parameters, and per-query tuning like `ef_search`.
-
-Meilisearch made that choice for you. Vector search runs on [Hannoy](/resources/internals/hannoy), a purpose-built HNSW-based, disk-backed vector store tuned for fast user-facing search at scale, with no index type to pick and no per-query knobs to tune. If your use case genuinely requires 100% recall on every query, pgvector's exact mode covers it; for search experiences, where consistent sub-50ms responses matter more than the last percentile of recall, ANN is the standard and Meilisearch delivers it without the tuning burden.
-
-### Filtering combined with vector search
-
-With a pgvector ANN index, `WHERE` clauses apply **after** the index scan. This is one of the most common production surprises with pgvector: a selective filter silently degrades results. Filtering down to 10% of rows with the default `ef_search` of 40 returns only about 4 results on average, and fixing it means enabling iterative scanning or tuning index parameters query by query.
-
-Meilisearch [filtering](/capabilities/filtering_sorting_faceting/overview) is native to the engine and integrated with vector search. Hannoy adapts its search strategy based on how many documents match the filter relative to the total, switching to linear scanning when the candidate set is small. Selective filters return full result sets with no hidden recall loss and nothing to tune.
-
-### Quantization and dimension limits
-
-pgvector offers several storage formats: `halfvec` (16-bit floats), binary vectors, and sparse vectors. Each is a schema-level decision you make per column, and changing your mind means migrating the column and rebuilding indexes.
-
-Meilisearch offers [binary quantization](/capabilities/hybrid_search/advanced/binary_quantization) as a single index setting. It is particularly effective for high-dimensional models (above roughly 1,500 to 3,000 dimensions), where the impact on recall is minimal compared to the gains in disk usage and indexing speed.
-
-Dimension limits follow the same pattern. pgvector documents hard ceilings: 2,000 dimensions for full-precision `vector`, 4,000 for `halfvec`, and 64,000 for binary vectors. Modern high-dimensional embedding models can bump into the full-precision ceiling, forcing you into a different column type. Meilisearch documents no dimension limit, and vectors above 3,000 dimensions run in production today, with binary quantization as the standard recommendation as dimensions grow.
-
-### Incremental index updates
-
-pgvector's own documentation notes that `VACUUM` on an HNSW index can be slow and recommends reindexing before vacuuming. On a catalog that changes frequently, that is a recurring maintenance cost to schedule and monitor.
-
-Hannoy was designed specifically to keep incremental updates cheap: it merges new vectors into the existing graph and re-indexes less than 1% of existing vectors on a typical insertion. Frequently updated datasets are a first-class scenario for Meilisearch, not a maintenance chore.
-
-## When pgvector might be enough
-
-Consider pgvector if:
-
-- You need exact nearest neighbor search with guaranteed recall on every query
-- You have already built and maintain an embedding pipeline, and vector search is an internal feature rather than a user-facing experience
-- You want vectors to live next to your relational data with transactional guarantees, and search quality is not the priority
-
-## When PostgreSQL FTS might be enough
-
-Consider PostgreSQL full-text search if:
-
-- You have a small dataset (thousands of documents)
-- Search isn't user-facing or real-time search isn't required
-- Basic keyword matching is sufficient
-- You can't add additional infrastructure
-- You're using a managed PostgreSQL service that restricts extensions
-
-## Migration resources
-
-Ready to upgrade from PostgreSQL full-text search:
-
-- [Migrating from PostgreSQL](/resources/migration/postgresql_migration) - Step-by-step data export and import guide with query and settings comparison
-- [Quick start guide](/getting_started/first_project) - Set up Meilisearch in minutes
-- [Hybrid search getting started](/capabilities/hybrid_search/getting_started) - Replace your pgvector setup with semantic and hybrid search in a few settings
-- [Indexing documents](/resources/internals/documents) - Import your data
-
-<Note>
-PostgreSQL is a registered trademark of the PostgreSQL Global Development Group. This comparison is based on publicly available information and our own analysis.
-</Note>
+[从 PostgreSQL 迁移至 Meilisearch 详细实战手册 →](/resources/migration/postgresql_migration)
