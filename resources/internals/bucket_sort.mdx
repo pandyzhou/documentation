@@ -1,90 +1,68 @@
 ---
-title: Bucket sort
-sidebarTitle: Bucket sort
-description: How Meilisearch uses bucket sort to rank search results through sequential ranking rules.
+title: 桶排序底层算法 (Bucket sort)
+sidebarTitle: 桶排序算法
+description: 深入探究 Meilisearch 如何利用桶排序（Bucket Sort）结合逐级排序规则链完成毫秒级打分。
 ---
 
-Meilisearch uses **bucket sort** to rank search results. This algorithm distributes documents into buckets based on ranking rules, then recursively sorts within each bucket using subsequent rules.
+Meilisearch 采用**桶排序算法（Bucket sort）**对搜索结果进行相关度排位。该算法首先根据初始排序规则将候选文档分发到不同的“桶”（Buckets）中，接着在每个桶内部使用后续规则递归细分排序。
 
-## How bucket sort works in Meilisearch
+## 桶排序在 Meilisearch 中如何运作？
 
-When you search, Meilisearch doesn't score documents with a single number. Instead, it applies [ranking rules](/capabilities/full_text_search/relevancy/ranking_rules) sequentially, sorting documents into buckets at each step.
+在执行搜索时，Meilisearch 并不简单地为文档算出一个孤立的死板数字，而是依次按流水线应用[排序规则 (Ranking rules)](/capabilities/full_text_search/relevancy/ranking_rules)，在每个阶段将文档归入不同的粗细桶中。
 
-### Example: Searching for "Badman dark knight returns"
+### 实例演示：搜索 "Badman dark knight returns"
 
-**Step 1: Apply the `words` rule**
+**第一步：应用 `words`（词频）规则**
 
-The first ranking rule (`words`) sorts documents by how many query words they contain:
+首项规则依据文档包含多少个查询单词进行分桶：
 
-| Bucket | Matches | Documents |
-|--------|---------|-----------|
-| 1 | All 4 words | "Batman: The Dark Knight Returns" |
-| 2 | 3 words | "Batman: The Dark Knight" |
-| 3 | 2 words | ... |
-| 4 | 1 word | "Angel and the Badman" |
+| 分桶编号 | 匹配词数情况 | 对应命中示例 |
+| :--- | :--- | :--- |
+| **桶 1** | 命中全部 4 个词 | 《蝙蝠侠：黑暗骑士归来 (The Dark Knight Returns)》 |
+| **桶 2** | 命中 3 个词 | 《蝙蝠侠：黑暗骑士》 |
+| **桶 3** | 命中 2 个词 | ... |
+| **桶 4** | 仅命中 1 个词 | 《天使与坏人 (Angel and the Badman)》 |
 
-**Step 2: Apply the `typo` rule within buckets**
+**第二步：在桶内部应用 `typo`（错字）规则决胜**
 
-If a bucket contains multiple documents, the next rule (`typo`) breaks ties. For example, in the 1-word bucket where "Badman" appears:
+如果某个桶中包含多篇文档，下一条规则负责打破平局。例如在只命中 1 个词的“桶 4”中：
 
-| Bucket | Typos | Documents |
-|--------|-------|-----------|
-| 4.1 | 0 typos | Documents containing "Badman" exactly |
-| 4.2 | 1 typo | Documents corrected "Badman" → "Batman" |
+| 子桶编号 | 错别字数量 | 对应文档情况 |
+| :--- | :--- | :--- |
+| **桶 4.1** | 0 个错字 | 文档精确包含了 "Badman" |
+| **桶 4.2** | 1 个错字 | 文档通过拼写纠错将 "Badman" 纠正为 "Batman" |
 
-This continues recursively until all buckets contain single documents or all ranking rules are exhausted.
+这一过程层层递归向下进行，直到所有桶中只剩下单篇独立文档，或者所有排序规则全部消耗完毕。
 
-## Why bucket sort?
+## 为什么选择桶排序？
 
-Bucket sort offers several advantages for search ranking:
+桶排序在搜索排序领域拥有多重压倒性优势：
 
-1. **Flexibility**: Different sorting algorithms can be applied within individual buckets
-2. **Configurable priority**: You control which criteria matter most by reordering rules
-3. **Efficient tie-breaking**: Only documents that tie on one rule need evaluation by the next
+1. **灵活性**：可以在不同的子桶中执行不同的特定排序逻辑
+2. **优先级可控**：通过简单调整规则数组的先后顺序，即可直观控制哪些业务指标享有更高话语权
+3. **极高的高并发计算效率**：只有在前一项规则打成平手的文档，才需要由下一项规则介入计算，大幅减少无关算力损耗
 
-## Best and worst cases
+## 最佳与最差复杂度
 
-| Case | Condition | Complexity |
-|------|-----------|------------|
-| **Best** | Documents spread evenly across buckets | O(n+k) where n=documents, k=buckets |
-| **Worst** | All documents in one bucket | Depends on the sorting algorithm used |
+| 场景 | 触发条件 | 时间复杂度 |
+| :--- | :--- | :--- |
+| **最佳情况** | 文档均匀分布在各个不同的桶中 | $O(n+k)$，其中 $n$ 为文档数，$k$ 为桶数量 |
+| **最差情况** | 所有文档在初始阶段全部挤在同一个桶中 | 取决于桶内具体使用的排序算法 |
 
-## Default ranking rules
+## 默认规则执行顺序
 
-Meilisearch applies these rules in order:
+Meilisearch 默认按以下优先级依次执行：
 
-1. **words**: Documents containing more query words rank higher
-2. **typo**: Documents with fewer typos rank higher
-3. **proximity**: Documents where query words appear closer together rank higher
-4. **attributeRank**: Documents matching in more important attributes rank higher
-5. **sort**: User-defined sort order (if specified)
-6. **wordPosition**: Documents with matches closer to the beginning of an attribute rank higher
-7. **exactness**: Documents with exact matches rank higher
+1. **words**：命中查询词更多的文档排在前面
+2. **typo**：错别字更少的文档排在前面
+3. **proximity**：查询词在原文中距离更近的文档排在前面
+4. **attributeRank**：命中文档更重要属性（如标题）的排在前面
+5. **sort**：用户在单次查询时指定的动态排序参数
+6. **wordPosition**：命中词越靠近字段头部的排在前面
+7. **exactness**：全字完全精准吻合的排在前面
 
-## Customizing ranking rules
+## 相关深度概念
 
-You can reorder, add, or remove ranking rules:
-
-```bash
-curl -X PUT "${MEILISEARCH_URL}/indexes/movies/settings/ranking-rules" \
-  -H "Authorization: Bearer ${MEILISEARCH_KEY}" \
-  -H "Content-Type: application/json" \
-  --data-binary '[
-    "words",
-    "typo",
-    "proximity",
-    "attributeRank",
-    "sort",
-    "wordPosition",
-    "exactness",
-    "release_date:desc"
-  ]'
-```
-
-Adding `release_date:desc` as a custom rule means newer movies rank higher when all other factors are equal.
-
-## Related concepts
-
-- [Ranking rules](/capabilities/full_text_search/relevancy/ranking_rules): Configure ranking behavior
-- [Ranking score](/capabilities/full_text_search/relevancy/ranking_score): Understanding search relevance scores
-- [Custom ranking rules](/capabilities/full_text_search/relevancy/custom_ranking_rules): Add business logic to ranking
+- [排序规则](/capabilities/full_text_search/relevancy/ranking_rules)：配置排序规则流水线
+- [相关度打分明细](/capabilities/full_text_search/relevancy/ranking_score)：理解与审查底层打分拆解
+- [自定义业务排序规则](/capabilities/full_text_search/relevancy/custom_ranking_rules)：将商业逻辑注入排序流程

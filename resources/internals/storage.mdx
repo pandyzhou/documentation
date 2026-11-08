@@ -1,72 +1,44 @@
 ---
-title: Storage
-sidebarTitle: Storage
-description: Learn about how Meilisearch stores and handles data in its LMDB storage engine.
+title: 底层存储引擎架构 (Storage)
+sidebarTitle: 存储引擎架构
+description: 了解 Meilisearch 如何利用 LMDB 存储引擎与内存映射技术管理磁盘与内存数据。
 ---
 
-Meilisearch is in many ways a database: it stores indexed documents along with the data needed to return relevant search results.
+从许多角度来看，Meilisearch 本身就是一种特殊的数据库：它负责在磁盘上持久化索引文档，并保存快速返回相关搜索结果所需的所有中间数据。
 
-## Database location
+## 数据库物理存储路径
 
-Meilisearch creates the database the moment you first launch an instance. By default, you can find it inside a `data.ms` folder located in the same directory as the `meilisearch` binary.
+当你首次启动 Meilisearch 实例时，系统会自动创建数据库文件。默认情况下，你可以在与 `meilisearch` 二进制文件同级的 `data.ms` 目录中找到它。
 
-The database location can change depending on a number of factors, such as whether you have configured a different database path with the [`--db-path` instance option](/resources/self_hosting/configuration/reference#database-path), or if you're using an OS virtualization tool like [Docker](https://docker.com).
+你可以通过 [`--db-path` 实例启动参数](/resources/self_hosting/configuration/reference#database-path) 或环境变量自定义该路径（例如在 Docker 容器内部默认位于 `/meili_data/data.ms`）。
 
-## LMDB
+## LMDB 存储引擎
 
-Creating a database from scratch and managing it is hard work. It would make no sense to try and reinvent the wheel, so Meilisearch uses a storage engine under the hood. This allows the Meilisearch team to focus on improving search relevancy and search performance while abstracting away the complicated task of creating, reading, and updating documents on disk and in memory.
+从零手写并维护一个底层存储引擎极其复杂。为了避免重复造轮子，Meilisearch 在底层选用了经过严苛考验的工业级开源存储引擎：**LMDB（Lightning Memory-Mapped Database）**。这使得 Meilisearch 团队能够将全部精力聚焦在打磨极致的搜索相关度与查询算法上。
 
-Our storage engine is called [Lightning Memory-Mapped Database](http://www.lmdb.tech/doc/) (LMDB for short). LMDB is a transactional key-value store written in C that was developed for OpenLDAP and has ACID properties. Though we considered other options, such as [Sled](https://github.com/spacejam/sled) and [RocksDB](https://rocksdb.org/), we chose LMDB because it provided us with the best combination of performance, stability, and features.
+LMDB 是一款用 C 语言编写的、支持强 ACID 事务特性的键值（Key-Value）存储引擎，最初由 OpenLDAP 项目开发。在对比了 Sled 和 RocksDB 等多种方案后，Meilisearch 最终选定了 LMDB，因其在性能、极低损耗与工业级稳定性之间取得了最佳平衡。
 
-### Memory mapping
+### 内存映射机制 (Memory mapping)
 
-LMDB stores its data in a [memory-mapped file](https://en.wikipedia.org/wiki/Memory-mapped_file). All data fetched from LMDB is returned straight from the memory map, which means there is no memory allocation or memory copy during data fetches.
+LMDB 将数据直接存储在**内存映射文件（Memory-mapped file，简称 mmap）**中。从 LMDB 读取数据时，数据直接从操作系统的内存映射空间返回，**在数据读取链路中完全零内存分配（Zero-allocation）、零数据拷贝（Zero-copy）**。
 
-All documents stored on disk are automatically loaded in memory when Meilisearch asks for them. This ensures LMDB will always make the best use of the RAM available to retrieve the documents.
+磁盘上的文档在 Meilisearch 需要时会被操作系统内核按需调度加载进物理内存，确保 LMDB 始终以最高效率利用当前系统的空闲 RAM。
 
-For best performance, Meilisearch works optimally when the full dataset fits in RAM. In practice, however, we consistently observe that a **RAM‑to‑disk ratio around 1/3 does not materially impact performance**, and for many workloads even ~1/10 works well. The effective memory requirement is highly use‑case‑dependent and varies with search and indexing pressure. RAM can be increased later to unlock more performance, but Meilisearch will not crash simply because the dataset size on disk exceeds the available RAM.
+为了获得极致性能，当全部数据集能够完整放入内存时 Meilisearch 表现最为出色。但在实际工程观测中：**即使物理内存与磁盘数据量比例达到约 1:3 甚至 1:10 时，性能依然不会出现断崖式下跌**。随着数据规模超过物理内存，Meilisearch 绝不会因此发生 OOM 崩溃，操作系统会自动执行页面置换。
 
-Disk latency is also important for performance: using a **low‑latency disk** (for example, an NVMe SSD) will give better results than a **high‑latency disk** (for example, HDD, NFS, or other network‑mounted storage).
+同时，磁盘 I/O 延迟也至关重要：**强烈建议使用低延迟的 NVMe SSD 固态硬盘**，其性能表现远超传统的机械硬盘（HDD）或通过网络挂载的 NFS 共享存储。
 
-### Understanding LMDB
+### 深入理解 LMDB 的特性与表现
 
-The choice of LMDB comes with certain pros and cons, especially regarding database size and memory usage. We summarize the most important aspects of LMDB here, but check out this [blog post by LMDB's developers](https://www.symas.com/post/understanding-lmdb-database-file-sizes-and-memory-utilization) for more in-depth information.
+#### 1. 磁盘空间占用 (Database size)
+当你从 Meilisearch 索引中删除文档时，你可能会发现宿主机上的磁盘占用并没有立刻减小。这是因为 LMDB 会在文件内部将这些被删除的数据块标记为“空闲可用”，留给后续新写入的数据复用，而不会频繁将磁盘空间交还给操作系统。这种设计避免了昂贵的周期性碎片压缩（Compaction）开销，使得写入性能更稳定。
 
-#### Database size
-
-When deleting documents from a Meilisearch index, you may notice disk space usage remains the same. This happens because LMDB internally marks that space as free, but does not make it available for the operating system at large. This design choice leads to better performance, as there is no need for periodic compaction operations. As a result, disk space occupied by LMDB (and thus by Meilisearch) tends to increase over time. It is not possible to calculate the precise maximum amount of space a Meilisearch instance can occupy.
-
-#### Memory usage
-
-Since LMDB is memory mapped, it is the operating system that manages the real memory allocated (or not) to Meilisearch.
-
-Thus, if you run Meilisearch as a standalone program on a server, LMDB will use the maximum RAM it can use. More RAM means more of the dataset stays in cache and fewer reads hit disk, but a [RAM‑to‑disk ratio of around 1/3 does not materially impact performance](#memory-mapping) for most workloads.
-
-On the other hand, if you run Meilisearch along with other programs, the OS will manage memory based on everyone's needs. This makes Meilisearch's memory usage quite flexible when used in development.
+#### 2. 内存占用 (Memory usage)
+由于采用内存映射，**实际由宿主机的操作系统内核来统一掌管分配给 Meilisearch 的物理内存**。
+- 如果将 Meilisearch 作为专属服务器上的唯一独立进程运行，操作系统会将几乎所有未使用的空闲内存都用作页面缓存（Page Cache），命中率最高；
+- 如果同时运行其他程序，操作系统会根据各进程的动态需求平滑调配内存，这使得 Meilisearch 在本地开发调试时占用非常灵活。
 
 <Tip>
-**Virtual Memory != Real Memory**
-Virtual memory is the disk space a program requests from the OS. It is not the memory that the program will actually use.
-
-Meilisearch will always demand a certain amount of space to use as a [memory map](#memory-mapping). This space will be used as virtual memory, but the amount of real memory (RAM) used will be much smaller.
+**虚拟内存 (Virtual Memory) ≠ 真实物理内存 (Real RAM)**  
+在系统监控（如 `top` 或任务管理器）中，你可能会看到 Meilisearch 申请了数百 GB 的虚拟内存（VIRT），那只是它向内核预留的内存映射地址空间上限，真实消耗的物理内存（RES/RSS）通常只有数百兆。
 </Tip>
-
-## Measured disk usage
-
-The following measurements were taken using <a href="https://www.meilisearch.com/docs/assets/datasets/movies.json" download="movies.json">movies.json</a> an 8.6 MB JSON dataset containing 19,553 documents.
-
-After indexing, the dataset size in LMDB is about 122MB.
-
-| Raw JSON | Meilisearch database size on disk | RAM usage | Virtual memory usage |
-| :------- | :-------------------------------- | :-------- | :------------------- |
-| 9.1 MB   | 224 MB                            | ≃ 305 MB  | 205 Gb (memory map)  |
-
-This means the database is using **305 MB of RAM and 224 MB of disk space.** Note that [virtual memory](https://www.enterprisestorageforum.com/hardware/virtual-memory/) **refers only to disk space allocated by your computer for Meilisearch; it does not mean that it's actually in use by the database.** See [Memory Usage](#memory-usage) for more details.
-
-<Warning>
-These metrics are highly dependent on the machine that is running Meilisearch. Running this test on significantly underpowered machines is likely to give different results.
-</Warning>
-
-It is important to note that **there is no reliable way to predict the final size of a database**. This is true for just about any search engine on the market. Meilisearch is no exception.
-
-Database size is affected by a large number of criteria, including settings, relevancy rules, use of facets, the number of different languages present, and more.
