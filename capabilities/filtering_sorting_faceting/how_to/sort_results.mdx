@@ -1,8 +1,7 @@
 ---
-title: Sort search results
-sidebarTitle: Sort search results
-description: By default, Meilisearch sorts results according to their relevancy. You can alter this behavior so users can decide at search time results they want to see first.
-sidebarDepth: 3
+title: 搜索结果排序 (Sorting)
+sidebarTitle: 结果排序
+description: 默认情况下 Meilisearch 按相关度打分排序。你可以为用户开放动态排序能力，由用户自主决定哪些结果优先展示。
 ---
 
 import CodeSamplesSortingGuideUpdateSortableAttributes1 from '/snippets/generated-code-samples/code_samples_sorting_guide_update_sortable_attributes_1.mdx';
@@ -11,47 +10,39 @@ import CodeSamplesSortingGuideSortParameter1 from '/snippets/generated-code-samp
 import CodeSamplesSortingGuideSortParameter2 from '/snippets/generated-code-samples/code_samples_sorting_guide_sort_parameter_2.mdx';
 import CodeSamplesSortingGuideSortNested1 from '/snippets/generated-code-samples/code_samples_sorting_guide_sort_nested_1.mdx';
 
-By default, Meilisearch focuses on ordering results according to their relevancy. You can alter this sorting behavior so users can decide at search time what type of results they want to see first.
+默认情况下，Meilisearch 专注于根据文本相关度高低排定先后次序。你可以调整这一行为，允许最终用户在发起检索时自主决定希望优先看到哪类结果。
 
-This can be useful in many situations, such as when a user wants to see the cheapest products available in a webshop.
+这在电商网站中极为常见，例如用户主动点击“按价格从低到高排列”。
 
 <Tip>
-Sorting at search time can be particularly effective when combined with placeholder searches (`"q": null`).
+检索期排序与占位符空搜索（`"q": null` 或 `"q": ""`）结合使用时效果尤为显著，可直接充当动态数据分类列表使用。
 </Tip>
 
-## Configure Meilisearch for sorting at search time
+## 配置开启排序能力
 
-To allow your users to sort results at search time you must:
+要允许前端用户在检索时排序，必须经过以下步骤：
 
-1. Decide which attributes you want to use for sorting
-2. Add those attributes to the `sortableAttributes` index setting
-3. Update Meilisearch's [ranking rules](/capabilities/full_text_search/relevancy/relevancy) (optional)
+1. 确定哪些字段需要支持排序（例如价格、销量、发布时间）
+2. 将这些字段添加到索引设置的 `sortableAttributes` 列表中
+3. 根据业务倾向，按需微调 Meilisearch 的[排序规则 (Ranking rules)](/capabilities/full_text_search/relevancy/relevancy) 顺序（可选）
 
 <Note>
-Meilisearch sorts strings in lexicographic order based on their byte values. For example, `á`, which has a value of 225, will be sorted after `z`, which has a value of 122.
-
-Uppercase letters are sorted as if they were lowercase. They will still appear uppercase in search results.
+Meilisearch 按照字节数值大小对字符串进行字典序排序。大写字母会被视同小写字母参与比较，但在返回结果中依然保留原始大写外观。
 </Note>
 
-### Add attributes to `sortableAttributes`
+### 添加字段到 `sortableAttributes`
 
-Meilisearch allows you to sort results based on document fields. Only fields containing numbers, strings, arrays of numeric values, and arrays of string values can be used for sorting.
+仅支持**数值型、字符串型、数值数组或字符串数组**类型的字段参与排序。
 
-After you have decided which fields you will allow your users to sort on, you must add their attributes to the [`sortableAttributes` index setting](/reference/api/settings/get-sortableattributes).
-
-<Warning>
-If a field has values of different types across documents, Meilisearch will give precedence to numbers over strings. This means documents with numeric field values will be ranked higher than those with string values.
-
-This can lead to unexpected behavior when sorting. For optimal user experience, only sort based on fields containing the same type of value.
-</Warning>
+确定排序字段后，必须调用更新接口将其写入 [`sortableAttributes` 索引设置](/reference/api/settings/get-sortableattributes)：
 
 <Warning>
-Adding an attribute to `sortableAttributes` that does not exist in any document is accepted silently: if the field does not exist, no error will be thrown. Double-check the attribute name when configuring sorting, as a typo will not surface until you notice results are not sorted as expected.
+如果某个字段在不同文档中存在类型冲突（例如有些文档存了数字 `120`，另一些存成了字符串 `"120"`），Meilisearch 在排序时会无条件优先排列数字。为避免意外排序行为，请确保排序字段的类型在全局保持一致。
 </Warning>
 
-#### Example
+#### 示例
 
-Suppose you have collection of books containing the following fields:
+假设你有一批图书数据集：
 
 <CodeGroup>
 
@@ -76,15 +67,13 @@ Suppose you have collection of books containing the following fields:
 
 </CodeGroup>
 
-If you are using this dataset in a webshop, you might want to allow your users to sort on `author` and `price`:
+如果你希望允许用户按作者 `author` 和价格 `price` 排序，提交以下配置：
 
 <CodeSamplesSortingGuideUpdateSortableAttributes1 />
 
-### Customize ranking rule order (optional)
+### 自定义排序规则在流水线中的位置（可选）
 
-When users sort results at search time, [Meilisearch's ranking rules](/capabilities/full_text_search/relevancy/relevancy) are set up so the top matches emphasize relevant results over sorting order. You might need to alter this behavior depending on your application's needs.
-
-This is the default configuration of Meilisearch's ranking rules:
+Meilisearch 默认的排序规则顺序如下：
 
 <CodeGroup>
 
@@ -102,29 +91,23 @@ This is the default configuration of Meilisearch's ranking rules:
 
 </CodeGroup>
 
-`"sort"` is in fifth place. This means it acts as a tie-breaker rule: Meilisearch will first place results closely matching search terms at the top of the returned documents list and only then will apply the `"sort"` parameters as requested by the user. In other words, by default Meilisearch provides a very relevant sorting.
+注意：`"sort"` 默认排在第五位。这意味着它充当**“平局决胜局”**：Meilisearch 会首先确保前排结果与查询词字面高度匹配，接着在打分相同的文档中，才依照用户的 `sort` 参数排列先后。
 
-Placing `"sort"` ranking rule higher in the list will emphasize exhaustive sorting over relevant sorting: your results will more closely follow the sorting order your user chose, but will not be as relevant.
+如果你的业务更侧重于严格服从排序（例如纯粹的低价电商列表），你可以将 `"sort"` 规则在列表中向上提位。位置越靠上，对用户排序指令的遵从越彻底。
 
-<Tip>
-Sorting applies equally to all documents. Meilisearch does not offer native support for promoting, pinning, and boosting specific documents so they are displayed more prominently than other search results. Consult these Meilisearch blog articles for workarounds on [implementing promoted search results with React InstantSearch](https://blog.meilisearch.com/promoted-search-results-with-react-instantsearch) and [document boosting](https://blog.meilisearch.com/document-boosting).
-</Tip>
+#### 示例：极致低价优先
 
-#### Example
-
-If your users care more about finding cheaper books than they care about finding specific matches to their queries, you can place `sort` much higher in the ranking rules:
+如果你的用户比起具体文本相关度，更在乎绝对的低价，可以将 `sort` 提升到显赫位置：
 
 <CodeSamplesSortingGuideUpdateRankingRules1 />
 
-## Sort results at search time
+## 在检索时传入 `sort` 参数
 
-After configuring `sortableAttributes`, you can use the [`sort` search parameter](/reference/api/search/search-with-post#body-sort) to control the sorting order of your search results.
+完成配置后，在调用搜索接口时使用 [`sort` 参数](/reference/api/search/search-with-post#body-sort) 传递具体的排序指令。
 
-`sort` expects a list of attributes that have been added to the `sortableAttributes` list.
+每个排序条件遵循 `字段名:排序方向` 格式：`asc` 为升序，`desc` 为降序。
 
-Attributes must be given as `attribute:sorting_order`. In other words, each attribute must be followed by a colon (`:`) and a sorting order: either ascending (`asc`) or descending (`desc`).
-
-When using the `POST` route, `sort` expects an array of strings:
+使用 `POST` 请求时，`sort` 接收字符串数组：
 
 <CodeGroup>
 
@@ -137,131 +120,21 @@ When using the `POST` route, `sort` expects an array of strings:
 
 </CodeGroup>
 
-When using the `GET` route, `sort` expects a comma-separated string:
+数组中的排列先后至关重要：排在前面的字段具有更高优先级。在上面的例子中，如果多本书的价格相同，Meilisearch 将使用作者字段来打破平局。
 
-<CodeGroup>
+### 实战示例：寻找最便宜的科幻小说
 
-```
-sort="price:desc,author:asc"
-```
-
-</CodeGroup>
-
-The order of `sort` values matter: the higher an attribute is in the search parameter value, the more Meilisearch will prioritize it over attributes placed lower. In our example, if multiple documents have the same value for `price`, Meilisearch will decide the order between these similarly-priced documents based on their `author`.
-
-### Example
-
-Suppose you are searching for books in a webshop and want to see the cheapest science fiction titles. This query searches for `"science fiction"` books sorted from cheapest to most expensive:
+以下请求搜索科幻小说（`science fiction`），并严格按价格由低到高排列：
 
 <CodeSamplesSortingGuideSortParameter1 />
 
-With our example dataset, the results look like this:
+### 基于嵌套字段进行排序
 
-<CodeGroup>
-
-```json
-[
-  {
-    "id": 1,
-    "title": "Solaris",
-    "author": "Stanislaw Lem",
-    "genres": [
-      "science fiction"
-    ],
-    "rating": {
-      "critics": 95,
-      "users": 87
-    },
-    "price": 5.00
-  },
-  {
-    "id": 2,
-    "title": "The Parable of the Sower",
-    "author": "Octavia E. Butler",
-    "genres": [
-      "science fiction"
-    ],
-    "rating": {
-      "critics": 90,
-      "users": 92
-    },
-    "price": 10.00
-  }
-]
-```
-
-</CodeGroup>
-
-It is common to search books based on an author's name. `sort` can help grouping results from the same author. This query would only return books matching the query term `"butler"` and group results according to their authors:
-
-<CodeSamplesSortingGuideSortParameter2 />
-
-<CodeGroup>
-
-```json
-[
-  {
-    "id": 2,
-    "title": "The Parable of the Sower",
-    "author": "Octavia E. Butler",
-    "genres": [
-      "science fiction"
-    ],
-    "rating": {
-      "critics": 90,
-      "users": 92
-    },
-    "price": 10.00
-  },
-  {
-    "id": 5,
-    "title": "Wild Seed",
-    "author": "Octavia E. Butler",
-    "genres": [
-      "fantasy"
-    ],
-    "rating": {
-      "critics": 84,
-      "users": 80
-    },
-    "price": 5.00
-  },
-  {
-    "id": 4,
-    "title": "Gender Trouble",
-    "author": "Judith Butler",
-    "genres": [
-      "feminism",
-      "philosophy"
-    ],
-    "rating": {
-      "critics": 86,
-      "users": 73
-    },
-    "price": 10.00
-  }
-]
-```
-
-</CodeGroup>
-
-### Sort by nested fields
-
-Use dot notation to sort results based on a document's nested fields. The following query sorts returned documents by their user review scores:
+使用点号语法（Dot notation）对嵌套对象内部的子属性排序。以下请求根据大众评分 `rating.users` 降序排列：
 
 <CodeSamplesSortingGuideSortNested1 />
 
-## Sorting and custom ranking rules
+## 运行时 `sort` 与自定义排序规则的区别
 
-There is a lot of overlap between sorting and configuring [custom ranking rules](/capabilities/full_text_search/relevancy/custom_ranking_rules), as both can greatly influence which results a user will see first.
-
-Sorting is most useful when you want your users to be able to alter the order of returned results at query time. For example, webshop users might want to order results by price depending on what they are searching and to change whether they see the most expensive or the cheapest products first.
-
-Custom ranking rules, instead, establish a default sorting rule that is enforced in every search. This approach can be useful when you want to promote certain results above all others, regardless of a user's preferences. For example, you might want a webshop to always feature discounted products first, no matter what a user is searching for.
-
-## Example application
-
-Take a look at our demos for examples of how to implement sorting:
-
-- **Ecommerce demo**: [preview](https://ecommerce.meilisearch.com/) • [GitHub repository](https://github.com/meilisearch/ecommerce-demo/)
-- **CRM SaaS demo**: [preview](https://saas.meilisearch.com/) • [GitHub repository](https://github.com/meilisearch/saas-demo/)
+- **`sort`（运行时参数）**：由**前端用户**在页面上按需发起（比如用户自选升降序）。
+- **自定义规则 (Custom ranking rules)**：属于**服务端固定策略**，对所有用户的搜索无差别常驻生效（例如平台运营要求新品永远优先决胜）。

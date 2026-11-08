@@ -1,59 +1,63 @@
 ---
-title: Filtering, sorting, and faceting
-sidebarTitle: Overview
-description: Narrow, order, and categorize search results using filters, sorting rules, and faceted navigation.
+title: 过滤、排序与分面筛选
+sidebarTitle: 概览
+description: 使用布尔过滤、排序规则与多维分面导航，精细化收窄、排定并分类呈现搜索结果。
 ---
 
-Filtering, sorting, and faceting are three complementary tools for refining search results:
+过滤（Filtering）、排序（Sorting）与分面（Faceting）是精细化优化搜索结果的三大核心互补工具：
 
-- **Filtering** narrows results to documents matching specific criteria (e.g., `genre = "action"`)
-- **Sorting** orders results by a field value (e.g., price ascending)
-- **Faceting** returns aggregated counts for field values, powering category navigation in your UI
+- **过滤 (Filtering)**：将结果严格限定在符合特定业务条件的文档集合内（如 `genre = "action"`）
+- **排序 (Sorting)**：根据特定字段的数值或字典序对结果进行升序或降序排列（如价格由低到高）
+- **分面 (Faceting)**：返回各个分类字段属性下的聚合命中数量统计，用于在前端构建电商级的多维筛选侧边栏
 
-## Filters vs facets
+## 过滤 vs 分面：核心区别
 
-Filters and facets both use `filterableAttributes`, but serve different purposes:
+过滤器和分面都依赖底层相同的 `filterableAttributes` 设置，但用途截然不同：
 
-| Feature | Purpose | Example |
-|---------|---------|---------|
-| Filters | Remove non-matching documents from results | Show only in-stock items |
-| Facets | Show available options with counts | "Color: Red (12), Blue (8)" |
-| Sorting | Order results by a field | Cheapest first |
+| 能力维度 | 核心目的 | 典型应用示例 |
+| :--- | :--- | :--- |
+| **过滤器 (Filters)** | 剔除不符合业务条件的无关文档 | “仅展示有现货的商品” |
+| **分面 (Facets)** | 统计并呈现可选分类项及其数量 | “颜色：红色 (12)，蓝色 (8)” |
+| **排序 (Sorting)** | 按指定字段对候选文档升降序排位 | “价格从便宜到贵” |
 
-Facets are filters that also return distribution data. Use them together to build interactive, ecommerce-style navigation.
+分面本质上是“额外返回了各维度分布统计数据的过滤器”。将它们结合起来，即可搭建出极具交互感的专业电商级筛选体验。
 
-## How it works
+## 工作原理
 
-Before you can filter, sort, or facet on an attribute, you must declare it in your index settings. Add attributes to `filterableAttributes` to enable filtering and faceting, or to `sortableAttributes` to enable sorting. Meilisearch then builds optimized internal data structures for those attributes, allowing operations to execute quickly even on large datasets.
+在能够对某个字段进行过滤、排序或分面之前，你必须提前在索引设置中声明它们：
+- 将字段加入 `filterableAttributes`，即可解锁针对该字段的过滤与分面能力；
+- 将字段加入 `sortableAttributes`，即可解锁自定义排序能力。
 
-At search time, pass [filter expressions](/capabilities/filtering_sorting_faceting/advanced/filter_expression_syntax) in the `filter` parameter, sorting instructions in the `sort` parameter, and request facet distributions using the `facets` parameter. You can combine all three in a single search request.
+Meilisearch 会在底层为这些属性构建针对性的位图与排序专用内部数据结构，使得即使在数百万级的大数据集上，过滤和分面也能在数毫秒内高速执行。
 
-## Common use cases
+在搜索时，通过 `filter` 参数传入[过滤表达式](/capabilities/filtering_sorting_faceting/advanced/filter_expression_syntax)，通过 `sort` 参数指定排序方向，通过 `facets` 参数声明需要聚合哪些维度的数量分布。你可以在同一个检索请求中同时结合这三者。
 
-- **E-commerce faceted navigation**: Let shoppers narrow products by brand, color, size, and price range while displaying counts for each option.
-- **Date-range filtering**: Restrict results to a specific time window, such as articles published in the last 30 days or events happening this week.
-- **Price or rating sorting**: Allow users to sort results by price (ascending or descending) or by average customer rating.
-- **Location-based filtering**: Combine [geo search](/capabilities/geo_search/overview) filters with category filters to show nearby restaurants, stores, or listings matching specific criteria.
+## 典型业务场景
 
-## Next steps
+- **电商分面多维筛选**：允许顾客按品牌、颜色、尺码和价格区间层层筛选，并在侧边栏动态展示每个维度的命中商品数。
+- **时间范围过滤**：限定时间窗口，例如“只看最近 30 天发布的动态”或“本周举行的活动”。
+- **价格与星级综合排序**：让用户在价格（升序/降序）或大众评分之间灵活切换。
+- **结合空间地理位置过滤**：将[地理搜索](/capabilities/geo_search/overview)（如距离我 3 公里以内）与普通分类过滤器结合，展示附近的特定餐馆或商家。
+
+## 下一步探索
 
 <CardGroup cols={2}>
-  <Card title="Getting started" href="/capabilities/filtering_sorting_faceting/getting_started">
-    Set up filterable attributes and run your first filtered search
+  <Card title="快速入门指南" href="/capabilities/filtering_sorting_faceting/getting_started">
+    配置 filterable 属性并执行你的第一次过滤搜索
   </Card>
-  <Card title="Faceted navigation" href="/capabilities/filtering_sorting_faceting/how_to/filter_with_facets">
-    Build category navigation with facet counts
+  <Card title="构建分面导航" href="/capabilities/filtering_sorting_faceting/how_to/filter_with_facets">
+    利用分面分布数据搭建分类导航栏
   </Card>
-  <Card title="Sorting" href="/capabilities/filtering_sorting_faceting/how_to/sort_results">
-    Order results by price, date, or any sortable field
+  <Card title="多维字段排序" href="/capabilities/filtering_sorting_faceting/how_to/sort_results">
+    按价格、发布时间或任意可排序字段排位
   </Card>
-  <Card title="Filter syntax" href="/capabilities/filtering_sorting_faceting/advanced/filter_expression_syntax">
-    Reference for filter expressions and operators
+  <Card title="Filter 表达式语法大全" href="/capabilities/filtering_sorting_faceting/advanced/filter_expression_syntax">
+    深入掌握各种过滤运算符、比较符与布尔组合
   </Card>
-  <Card title="Foreign filters" href="/capabilities/filtering_sorting_faceting/advanced/filtering_by_joined_data">
-    Filter documents by properties of related data across indices
+  <Card title="跨索引外键过滤" href="/capabilities/filtering_sorting_faceting/advanced/filtering_by_joined_data">
+    利用跨索引关联数据对文档进行属性过滤
   </Card>
-  <Card title="Precise filtering with arrays" href="/capabilities/filtering_sorting_faceting/advanced/precise_filtering_array_items">
-    Use AND logic to filter array relationships precisely
+  <Card title="数组元素精确过滤" href="/capabilities/filtering_sorting_faceting/advanced/precise_filtering_array_items">
+    使用精准 AND 逻辑对数组内部的关联数据进行过滤
   </Card>
 </CardGroup>

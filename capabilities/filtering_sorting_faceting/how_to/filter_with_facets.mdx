@@ -1,7 +1,7 @@
 ---
-title: Search with facets
-sidebarTitle: Search with facets
-description: Faceted search interfaces provide users with a quick way to narrow down search results by selecting categories relevant to their query.
+title: 使用分面搜索 (Search with facets)
+sidebarTitle: 分面搜索实战
+description: 学习如何在 Meilisearch 中配置和运用分面（Facets），获取分类聚合分布统计数据，并实现对分面值本身的精准检索。
 ---
 
 import CodeSamplesFacetedSearchUpdateSettings1 from '/snippets/generated-code-samples/code_samples_faceted_search_update_settings_1.mdx';
@@ -9,11 +9,11 @@ import CodeSamplesFacetedSearch1 from '/snippets/generated-code-samples/code_sam
 import CodeSamplesFacetSearch2 from '/snippets/generated-code-samples/code_samples_facet_search_2.mdx';
 import CodeSamplesFacetSearch3 from '/snippets/generated-code-samples/code_samples_facet_search_3.mdx';
 
-In Meilisearch, facets are a specialized type of filter. This guide shows you how to configure facets and use them when searching a database of books. It also gives you instruction on how to get facet value distributions and to search for specific facet values.
+在 Meilisearch 中，分面（Facets）是一种能够同时返回分类聚合统计数据的专业过滤器。本指南通过模拟图书数据集，手把手教你如何配置分面、获取分类项的命中分布统计，以及直接对分面值本身进行搜索。
 
-## Configure facet index settings
+## 配置分面索引设置
 
-First, create a new index using this <a id="downloadBooks" href="https://www.meilisearch.com/docs/assets/datasets/books.json" download="books.json">books dataset</a>. Documents in this dataset have the following fields:
+假设你有一批图书数据集：
 
 <CodeGroup>
 
@@ -33,19 +33,19 @@ First, create a new index using this <a id="downloadBooks" href="https://www.mei
 
 </CodeGroup>
 
-Next, add `genres`, `language`, and `rating` to the list of `filterableAttributes`:
+将 `genres`（题材）、`language`（语言）和 `rating`（评分）添加到 `filterableAttributes` 列表中：
 
 <CodeSamplesFacetedSearchUpdateSettings1 />
 
-You have now configured your index to use these attributes as filters.
+至此，你的索引已经准备就绪，可以随时利用这些字段执行分面筛选与统计。
 
-## Use facets in a search query
+## 在搜索请求中使用分面
 
-Make a search query setting the `facets` search parameter:
+在普通的搜索请求中，传入 `facets` 参数指定需要统计的字段列表：
 
 <CodeSamplesFacetedSearch1 />
 
-The response returns all books matching the query. It also returns two fields you can use to create a faceted search interface, `facetDistribution` and `facetStats`:
+响应不仅会返回匹配的书籍列表，还会额外返回专用于搭建电商侧边栏的两个核心字段：`facetDistribution`（分布统计）与 `facetStats`（数值极值）：
 
 <CodeGroup>
 
@@ -81,19 +81,16 @@ The response returns all books matching the query. It also returns two fields yo
 
 </CodeGroup>
 
-`facetDistribution` lists all facets present in your search results, along with the number of documents returned for each facet.
+- `facetDistribution`：列出当前搜索命中文档所涵盖的所有分面属性值，以及**每个分类值分别拥有多少条结果**。
+- `facetStats`：针对所有数值型字段，返回当前搜索结果中的**最小值 (min) 与最大值 (max)**（非常适合直接渲染价格滑块或评分区间组件）。
 
-`facetStats` contains the highest and lowest values for all facets containing numeric values.
+### 分面值的展示排序规则
 
-### Sorting facet values
-
-By default, all facet values are sorted in ascending alphanumeric order. You can change this using the `sortFacetValuesBy` property of the [`faceting` index settings](/reference/api/settings/get-faceting):
+默认情况下，所有的分面值按照字母数字升序排列。你可以通过修改 [`faceting` 索引设置](/reference/api/settings/get-faceting) 中的 `sortFacetValuesBy` 属性，将其改为**按结果数量由多到少排序（Count 降序）**：
 
 <CodeSamplesFacetSearch2 />
 
-The above code sample sorts the `genres` facet by descending value count.
-
-Repeating the previous query using the new settings will result in a different order in `facetsDistribution`:
+使用该设置后，数量最多的分类（如科幻 8 本、文学 7 本、经典 6 本）将自动排在侧边栏最前排：
 
 <CodeGroup>
 
@@ -106,33 +103,23 @@ Repeating the previous query using the new settings will result in a different o
       "Literature": 7,
       "Classics": 6,
       "Novel": 2,
-      "Horror": 2,
-      "Fantasy": 2,
-      "Victorian": 2,
-      "Vampires": 1,
-      "Tragedy": 1,
-      "Satire": 1,
-      "Romance": 1,
-      "Historical Fiction": 1,
-      "Coming-of-Age": 1,
-      "Comedy": 1
-    },
-   …
-   }
+      "Horror": 2
+    }
+  }
 }
 ```
 
 </CodeGroup>
 
-## Searching facet values
+## 检索分面值本身 (Facet Search)
 
-You can also search for facet values with the [facet search endpoint](/reference/api/facet-search/search-for-facet-values):
+当某个分类下的选项成百上千（例如品牌或分类标签有几千个）时，前端侧边栏需要一个专门的“搜索分类标签”小搜索框。
+
+你可以使用专用的[分面搜索接口](/reference/api/facet-search/search-for-facet-values)：
 
 <CodeSamplesFacetSearch3 />
 
-The following code sample searches the `genres` facet for values starting with `c`:
-
-The response contains a `facetHits` array listing all matching facets, together with the total number of documents that include that facet:
+例如在 `genres` 题材分面中搜索以字母 `c` 开头的分类：
 
 <CodeGroup>
 
@@ -157,37 +144,17 @@ The response contains a `facetHits` array listing all matching facets, together 
       "count": 1
     }
   ],
-  "facetQuery": "c",
-  …
+  "facetQuery": "c"
 }
 ```
 
 </CodeGroup>
 
-You can further refine results using the `q`, `filter`, and `matchingStrategy` parameters. [Learn more about them in the API reference.](/reference/api/facet-search/search-for-facet-values)
+## 获取绝对精准的分面计数
 
-## Toggle facet search globally
+默认情况下，分面搜索返回的各分类命中数量是经过极速算法预估的（在极大规模数据下响应极快）。
 
-By default, the facet search endpoint is enabled for all indexes. If you do not need facet search and want to speed up indexing, you can disable it with the `facetSearch` index setting:
-
-<CodeGroup>
-
-```bash
-curl \
-  -X PUT 'MEILISEARCH_URL/indexes/books/settings/facet-search' \
-  -H 'Content-Type: application/json' \
-  --data-binary 'false'
-```
-
-</CodeGroup>
-
-Setting `facetSearch` to `false` disables the `/indexes/{index_uid}/facet-search` endpoint for this index. Documents are still indexed for regular facet distribution, but Meilisearch skips the additional processing needed for facet search, resulting in faster indexing. To re-enable facet search, send the same request with `true`.
-
-## Get exact facet counts
-
-By default, the facet counts returned by the facet search endpoint are estimates. This is faster but may not be perfectly accurate for large datasets.
-
-To get exact facet counts, set the `exhaustiveFacetCount` parameter to `true` in your facet search request:
+如果你在商城前台等场景要求数字必须 100% 精确，在请求中加上 `"exhaustiveFacetCount": true`：
 
 <CodeGroup>
 
@@ -203,5 +170,3 @@ curl \
 ```
 
 </CodeGroup>
-
-Exact counts are slower to compute, especially on large indexes. Use this option when precision matters more than speed, for example when displaying category counts in a storefront.
