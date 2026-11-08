@@ -1,131 +1,105 @@
 ---
-title: Hybrid and semantic search
-sidebarTitle: Overview
-description: Combine full-text keyword search with AI-powered semantic search to deliver results that match both exact terms and meaning.
+title: 混合检索与语义搜索 (Hybrid and semantic search)
+sidebarTitle: 概览
+description: 将全文关键词检索与 AI 向量语义检索无缝结合，实现兼顾精准字面匹配与深层语义理解的现代化搜索体验。
 ---
 
-Hybrid search combines two search strategies: [full-text search](/capabilities/full_text_search/overview) (matching keywords) and semantic search (matching meaning). This gives users the best of both worlds, returning results that are both textually and conceptually relevant.
+混合搜索（Hybrid search）深度融合了两种搜索策略：[全文检索](/capabilities/full_text_search/overview)（基于关键词匹配）与语义搜索（基于上下文含义匹配）。这让用户能够两全其美，获得既在文本字面上精准吻合、又在概念语义上高度契合的搜索结果。
 
-## Embedding models, not LLMs
+## 核心区别：使用的是向量嵌入模型，而非大语言模型 (LLMs)
 
-Semantic search in Meilisearch relies on **embedding models**, not large language models (LLMs). This is an important distinction:
+在 Meilisearch 中，语义搜索依赖的是**向量嵌入模型（Embedding models）**，而不是耗费巨大的大语言模型（LLMs）。理解这一点至关重要：
 
-- **Embedding models** convert text into numerical vectors that capture meaning. They are small, fast, and inexpensive to run.
-- **LLMs** (like GPT-4 or Claude) generate text and reason about it. They are much larger, slower, and more expensive.
+- **向量嵌入模型 (Embedding models)**：专门将文字转换为能够捕捉语境含义的高维数字向量。它们体积小、计算快、调用成本极低。
+- **大语言模型 (LLMs)**（如 GPT-4 或 Claude）：专门用于生成自然语言文本和进行复杂逻辑推理。它们体积庞大、生成速度较慢，且推理成本昂贵。
 
-Meilisearch uses embedding models for hybrid and semantic search, making it orders of magnitude cheaper and faster than LLM-based approaches. For conversational AI features that do use LLMs, see [agentic search](/capabilities/agentic_search/overview).
+Meilisearch 在混合搜索中采用向量嵌入模型，使得搜索性能比基于 LLM 的方案**快上数个数量级，成本大幅降低**。若想了解使用大语言模型构建对话式 AI 的特性，请参阅[智能体搜索 (Agentic search)](/capabilities/agentic_search/overview)。
 
-## How it works
+## 工作原理
 
-When you configure an embedder, Meilisearch automatically generates vector embeddings for every document in your index. You don't need to compute or manage embeddings yourself.
+只要在索引中配置好向量嵌入器（Embedder），Meilisearch 就会**全自动为索引中的每篇文档生成向量嵌入**。你完全无需自行编写 Python 脚本去计算或管理复杂的向量数据库。
 
 ```mermaid
 flowchart LR
-    A[Documents] --> B[Meilisearch]
-    B -->|auto-embeds| C[Vector index]
-    B -->|indexes| D[Keyword index]
-    E[Search query] --> B
-    B --> F[Merge & rank results]
+    A[文档数据] --> B[Meilisearch 引擎]
+    B -->|全自动计算向量| C[向量索引 (Vector Index)]
+    B -->|构建倒排索引| D[关键词索引 (Keyword Index)]
+    E[用户搜索词] --> B
+    B --> F[智能融合并加权排序]
 ```
 
-At search time, Meilisearch runs both keyword and semantic search in parallel, then merges the results using a smart scoring system.
+在检索时，Meilisearch 会在底层**并行并发执行**关键词搜索与语义向量搜索，并通过智能打分算法将两路结果混合归并。
 
-### Automatic embedding generation
+### 全自动向量生成流水线
 
-Meilisearch handles the entire embedding pipeline for you:
+Meilisearch 为你全包了整套向量流水线：
 
-- **Batching**: documents are grouped and sent to the embedding provider in optimized batches, minimizing API calls and maximizing throughput
-- **Caching**: embeddings are stored and only regenerated when document content changes, so re-indexing unchanged documents costs nothing. Note that changing your embedder configuration (switching model, provider, or document template) triggers a full re-embedding of all documents, which may incur significant API costs for large indexes
-- **Rate limit handling**: Meilisearch automatically retries when providers return rate limit errors, with no configuration needed
-- **Document templates**: you control exactly which fields are embedded using [Liquid templates](/capabilities/hybrid_search/advanced/document_template_best_practices), so the embedding captures the most relevant parts of each document
+- **智能请求批处理 (Batching)**：文档会被自动合并为最优批次发送给模型服务商，最大限度减少 API 调用次数并压榨吞吐量。
+- **向量缓存机制 (Caching)**：计算好的向量会被持久化缓存，只有在文档字段内容发生修改时才会重新计算。重新索引未变动的文档完全免费、零调用成本。*(注意：如果你修改了嵌入器本身的配置，如切换了模型或模版，会触发全量重新生成向量)*。
+- **速率限制自动重试 (Rate limit handling)**：当远程提供商（如 OpenAI）触发 429 限流报错时，Meilisearch 会自动执行指数退避重试，无需人工干预。
+- **文档模版定义 (Document templates)**：通过 [Liquid 模版语法](/capabilities/hybrid_search/advanced/document_template_best_practices)，由你精准指定将哪些关键字段拼接后送给模型生成向量。
 
 <Warning>
-Updating embedder settings may trigger a full reindex. When you partially update an index's embedder settings (for example, changing `model`, `source`, `documentTemplate`, `dimensions`, or `pooling`), Meilisearch may reindex all documents and regenerate their embeddings. For large indexes this can take a long time and, with paid providers, incur significant API costs.
-
-[`distribution`](/capabilities/hybrid_search/advanced/tune_distribution) is a notable exception: changing it does not trigger a reindex.
+部分修改嵌入器配置（例如更改 `model`、`source`、`documentTemplate`、`dimensions` 等）可能会触发全量文档的底层向量重建。在大规模数据集中，对于按量计费的云端模型服务，这可能会产生一定的 API 调用费用。
 </Warning>
 
-### Smart result ranking
+### 智能自适应结果融合
 
-When you perform a hybrid search, Meilisearch does not simply concatenate keyword and semantic results. It uses a scoring system that automatically determines, for each query, whether full-text or semantic results are more relevant:
+进行混合搜索时，Meilisearch 并非生硬地把关键词结果和向量结果拼接在一起，而是采用了一套自适应打分机制，根据用户查询词的特征，自动动态倾斜权重：
 
-- A precise query like `"iPhone 15 Pro Max 256GB"` will naturally favor keyword matches, because the exact terms appear in matching documents
-- A descriptive query like `"lightweight laptop for travel"` will favor semantic matches, because the meaning matters more than the exact words
-- Ambiguous queries get a balanced mix of both strategies
+- **精准专有名词查询**（如 `"iPhone 15 Pro Max 256GB"`）：引擎会自动大幅偏向**关键词匹配**，因为完全相同的词汇在文档中明确存在；
+- **描述性口语自然语言**（如 `"适合出差携带的轻薄笔记本电脑"`）：引擎会自动大幅偏向**语义匹配**，因为语境含义的契合远比死板的字面更重要；
+- **模糊/通用查询**：两路策略各占半壁江山，平滑混排。
 
-You can influence this balance with the [`semanticRatio`](/capabilities/hybrid_search/advanced/custom_hybrid_ranking) parameter, but the default (`0.5`) works well for most use cases because Meilisearch's scoring handles the blending intelligently.
+你随时可以通过 [`semanticRatio` 参数](/capabilities/hybrid_search/advanced/custom_hybrid_ranking) 手动调节偏向比率，但在大多数情况下，默认的 `0.5` 已经能够获得极佳的智能化平衡。
 
-## When to use hybrid search
+## 适用场景对照
 
-| Scenario | Best approach |
-|----------|--------------|
-| User searches for a product name or SKU | Full-text search |
-| User describes a problem in natural language | Semantic search |
-| Ecommerce product search with varied vocabulary | Hybrid search |
-| Documentation search with technical terms | Hybrid search |
-| FAQ or support knowledge base | Hybrid search |
+| 实际业务场景 | 最佳推荐搜索策略 |
+| :--- | :--- |
+| 用户搜索明确的产品名称、型号或商品 SKU 编码 | **全文检索 (Full-text)** |
+| 用户用自然语言或口语化描述遇到的故障与问题 | **语义搜索 (Semantic)** |
+| 电商平台商品检索（用户用词千奇百怪、口语与型号混杂） | **混合搜索 (Hybrid)** ⭐️ |
+| 技术文档与知识库检索（同时包含专业函数名与业务描述） | **混合搜索 (Hybrid)** ⭐️ |
+| 智能客服问答与 FAQ 常见问题库 | **混合搜索 (Hybrid)** ⭐️ |
 
-## Supported embedder providers
+## 支持的向量模型服务商 (Providers)
 
-Meilisearch supports a wide range of embedding providers. Some have native integrations, while others are available through the flexible [REST embedder](/capabilities/hybrid_search/how_to/configure_rest_embedder) that works with any API.
+Meilisearch 原生支持几乎所有主流的模型提供商，并通过通用的 [REST Embedder](/capabilities/hybrid_search/how_to/configure_rest_embedder) 支持任何符合标准规范的自定义模型 API。
 
-### Native integrations
+### 原生集成驱动
+- **OpenAI**（`openAi`）
+- **HuggingFace 本地运行**（`huggingFace`，无需网络，在实例内本地计算向量）
+- **Ollama 本地私有部署**（`ollama`）
 
-| Provider | Source | Guide |
-|----------|--------|-------|
-| OpenAI | `openAi` | [Configure OpenAI](/capabilities/hybrid_search/how_to/configure_openai_embedder) |
-| HuggingFace (local) | `huggingFace` | [Configure HuggingFace](/capabilities/hybrid_search/how_to/configure_huggingface_embedder) |
+### 经过官方认证的 REST 驱动
+- **Cohere**
+- **Mistral AI**
+- **Google Gemini**
+- **Cloudflare Workers AI**
+- **Voyage AI**
+- **AWS Bedrock**
+- **Jina AI**
+- **TwelveLabs (Marengo)**
+- **任意自建兼容 REST API**
 
-### Available via REST embedder
+### 自带预计算向量导入 (User-provided embeddings)
 
-| Provider | Guide |
-|----------|-------|
-| Cohere | [Configure Cohere](/capabilities/hybrid_search/how_to/configure_cohere_embedder) |
-| Mistral | [Configure Mistral](/capabilities/hybrid_search/providers/mistral) |
-| Google Gemini | [Configure Gemini](/capabilities/hybrid_search/providers/gemini) |
-| Cloudflare Workers AI | [Configure Cloudflare](/capabilities/hybrid_search/providers/cloudflare) |
-| Voyage AI | [Configure Voyage](/capabilities/hybrid_search/providers/voyage) |
-| AWS Bedrock | [Configure Bedrock](/capabilities/hybrid_search/providers/bedrock) |
-| HuggingFace Inference Endpoints | [Configure HF Inference](/capabilities/hybrid_search/providers/huggingface) |
-| Jina | [Configure Jina](/capabilities/hybrid_search/providers/jina) |
-| TwelveLabs | [Configure TwelveLabs Marengo](/capabilities/hybrid_search/providers/twelvelabs) |
-| Any REST API | [Configure REST embedder](/capabilities/hybrid_search/how_to/configure_rest_embedder) |
+如果你在外部已有专门的离线算法管线（如针对图像、音频提取的多模态特征向量），你可以直接通过 API 将这些预计算的高维向量写入文档的 `_vectors` 字段中。
 
-### User-provided embeddings
-
-If you pre-compute embeddings externally (for example, for images or audio content), you can supply them directly. See [search with user-provided embeddings](/capabilities/hybrid_search/how_to/search_with_user_provided_embeddings).
-
-## Embedder field compatibility
-
-Different embedder sources accept different configuration fields. Setting an invalid field for a given source returns an error on settings update.
-
-| Field | `openAi` | `huggingFace` | `ollama` | `rest` | `userProvided` |
-|---|---|---|---|---|---|
-| `url` / `apiKey` | optional | invalid | optional | required (`url`) | invalid |
-| `model` | optional | optional | optional | invalid | invalid |
-| `documentTemplate` / `documentTemplateMaxBytes` | optional | optional | optional | optional | invalid |
-| `dimensions` | optional | optional | optional | optional | **mandatory** |
-| `pooling` | invalid | optional (default `useModel`) | invalid | invalid | invalid |
-| `distribution` | optional | optional | optional | optional | optional |
-| `binaryQuantized` | optional | optional | optional | optional | optional |
-
-<Note>
-For `composite` embedders, these rules apply to each sub-embedder with additional constraints. See [composite embedders](/capabilities/hybrid_search/advanced/composite_embedders#sub-embedder-constraints).
-</Note>
-
-## Next steps
+## 下一步
 
 <CardGroup cols={2}>
-  <Card title="Getting started" href="/capabilities/hybrid_search/getting_started">
-    Configure an embedder and perform your first semantic search
+  <Card title="混合搜索快速上手" href="/capabilities/hybrid_search/getting_started">
+    配置嵌入器并执行你的第一次语义混合搜索
   </Card>
-  <Card title="Choose an embedder" href="/capabilities/hybrid_search/how_to/choose_an_embedder">
-    Compare providers and pick the right one for your use case
+  <Card title="选择适合的嵌入器" href="/capabilities/hybrid_search/how_to/choose_an_embedder">
+    对比各大模型提供商的性能、维度与计费
   </Card>
-  <Card title="Document templates" href="/capabilities/hybrid_search/advanced/document_template_best_practices">
-    Control which document fields are used for embedding generation
+  <Card title="文档模版最佳实践" href="/capabilities/hybrid_search/advanced/document_template_best_practices">
+    精确控制参与向量化的文本字段组合规则
   </Card>
-  <Card title="Custom hybrid ranking" href="/capabilities/hybrid_search/advanced/custom_hybrid_ranking">
-    Tune semanticRatio to balance keyword and semantic results
+  <Card title="定制混合检索权重比例" href="/capabilities/hybrid_search/advanced/custom_hybrid_ranking">
+    调整 semanticRatio 参数优化关键词与语义的平衡
   </Card>
 </CardGroup>

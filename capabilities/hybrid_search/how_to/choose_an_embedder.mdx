@@ -1,95 +1,63 @@
 ---
-title: Which embedder should I choose?
-sidebarTitle: Choose an embedder
-description: How to choose the right embedding model for your use case, balancing cost, speed, quality, and specialization.
+title: 如何挑选适合的向量嵌入器 (Choose an embedder)
+sidebarTitle: 挑选嵌入器
+description: 如何根据具体业务场景选择合适的向量嵌入模型，在成本、建索速度、检索延迟与专业领域能力之间实现最佳平衡。
 ---
 
-Choosing an embedding model is not just about quality. Cost, indexing speed, search latency, dimensions, and domain specialization all matter. In most cases, a smaller, cheaper model will serve you better than the largest available option.
+挑选向量模型绝不仅仅看准确率天花板。调用成本、批量建索速度、单次搜索网络延迟、向量维度大小以及特定垂直领域的适配度同样关键。在绝大多数实际业务中，**一个更小、更快的模型往往比参数量庞大的昂贵模型更实用**。
 
-## Available providers
+## 主流服务商及优势一览
 
-Meilisearch supports a wide range of embedding providers, each with different models, pricing, and strengths:
+| 提供商 | 代表模型 | 核心优势 | 配置指南 |
+| :--- | :--- | :--- | :--- |
+| **OpenAI** | text-embedding-3-small, text-embedding-3-large | 生态最成熟，开箱即用，综合质量极高 | [配置 OpenAI](/capabilities/hybrid_search/how_to/configure_openai_embedder) |
+| **Cohere** | embed-v4.0, embed-multilingual-v3.0 | 业界顶级多语言理解能力，支持图文跨模态 | [配置 Cohere](/capabilities/hybrid_search/how_to/configure_cohere_embedder) |
+| **Voyage AI** | voyage-4, voyage-4-lite, voyage-4-large | 前 SOTA 级别，灵活自选维度，具备垂直领域微调 | [配置 Voyage](/capabilities/hybrid_search/providers/voyage) |
+| **Jina** | jina-embeddings-v4, v5-text-small/nano | 超长 32K 上下文，支持 PDF 与图文混合，轻量极快 | [配置 Jina](/capabilities/hybrid_search/providers/jina) |
+| **TwelveLabs** | marengo3.5, marengo3.0 | 视频/音视频跨模态全能向量搜索 | [配置 TwelveLabs](/capabilities/hybrid_search/providers/twelvelabs) |
+| **Google Gemini** | gemini-embedding-001 | 3072 高维，深度集成谷歌生态 | [配置 Gemini](/capabilities/hybrid_search/providers/gemini) |
+| **Cloudflare** | bge-small/base/large, qwen3 | 边缘网络超低延迟，提供慷慨的免费额度 | [配置 Cloudflare](/capabilities/hybrid_search/providers/cloudflare) |
+| **AWS Bedrock** | Titan v2, Nova, Cohere on Bedrock | 适合已有 AWS 企业架构及合规要求 | [配置 Bedrock](/capabilities/hybrid_search/providers/bedrock) |
+| **HuggingFace (本地)**| 任意兼容模型（如 BAAI/bge） | 零 API 费用，无网络外发，数据不出本地服务器 | [配置 HuggingFace](/capabilities/hybrid_search/how_to/configure_huggingface_embedder) |
 
-| Provider | Models | Strengths | Guide |
-|----------|--------|-----------|-------|
-| OpenAI | text-embedding-3-small, text-embedding-3-large | Straightforward setup, good general quality | [Guide](/capabilities/hybrid_search/how_to/configure_openai_embedder) |
-| Cohere | embed-v4.0, embed-english-v3.0, embed-multilingual-v3.0 | Latest v4 supports text and images, strong multilingual | [Guide](/capabilities/hybrid_search/how_to/configure_cohere_embedder) |
-| Voyage AI | voyage-4, voyage-4-lite, voyage-4-large | High quality, flexible dimensions, domain-specific models | [Guide](/capabilities/hybrid_search/providers/voyage) |
-| Jina | jina-embeddings-v4, jina-embeddings-v5-text-small/nano | v4 supports text, images, and PDFs, 32K context | [Guide](/capabilities/hybrid_search/providers/jina) |
-| TwelveLabs | marengo3.5, marengo3.0 | Multimodal: text, images, video, and audio in one vector space | [Guide](/capabilities/hybrid_search/providers/twelvelabs) |
-| Mistral | mistral-embed | Good for existing Mistral users | [Guide](/capabilities/hybrid_search/providers/mistral) |
-| Google Gemini | gemini-embedding-001 | High dimensions (3072), Google ecosystem | [Guide](/capabilities/hybrid_search/providers/gemini) |
-| Cloudflare | bge-small/base/large, embeddinggemma, qwen3 | Edge network, low latency, free tier | [Guide](/capabilities/hybrid_search/providers/cloudflare) |
-| AWS Bedrock | Titan v2, Nova, Cohere Embed v4 on Bedrock | AWS ecosystem, multimodal options | [Guide](/capabilities/hybrid_search/providers/bedrock) |
-| HuggingFace (local) | Any compatible model | No API costs, full control | [Guide](/capabilities/hybrid_search/how_to/configure_huggingface_embedder) |
-| HuggingFace Inference | bge, MiniLM, mpnet, multilingual-e5, and more | Scalable open-source models, hundreds available | [Guide](/capabilities/hybrid_search/providers/huggingface) |
+## 为什么“小模型”通常反而是更优解？
 
-## Smaller models are often better
+大模型并不总意味着更好的搜索体验。在混合搜索架构中，Meilisearch 会用[智能自适应打分](/capabilities/hybrid_search/overview#smart-result-ranking)将关键词与语义两路融合。**全文检索已经把字面精准匹配做到了极致，向量语义端只需要负责捕捉核心意图和语境，而不需要纠结微小的字面细节。**
 
-Bigger is not always better. In a hybrid search setup, Meilisearch combines keyword results with semantic results using its [smart scoring system](/capabilities/hybrid_search/overview#smart-result-ranking). Full-text search already handles exact matches very well, so the semantic side only needs to capture general meaning, not every nuance.
+这意味着一个小而快的高性价比模型（例如 384 维度的轻量模型）完全足够。384 维与 3072 维在混合搜索下的体验差距微乎其微，但前者节约了数倍的内存开销、建索成本和网络延迟。
 
-This means a small, fast embedding model is often enough. The quality difference between a 384-dimension model and a 3072-dimension model is rarely worth the extra cost and latency, especially when the keyword side is already covering precise queries.
+除非你有明确的超高精度要求，否则**强烈建议优先选择轻量、便宜且低延迟的模型**。例如 `text-embedding-3-small`、`voyage-4-lite`、`jina-embeddings-v5-text-nano` 或国内的 `bge-small-zh`。
 
-**Prioritize cheaper, faster models** unless you have a specific reason to need more dimensions or higher embedding quality. Models like `text-embedding-3-small`, `voyage-4-lite`, `jina-embeddings-v5-text-nano`, or `embed-english-light-v3.0` are excellent starting points.
+## 关键技术选型指标
 
-## What to look for
+### 1. 成本与速率限制 (Cost & Rate limits)
+- **免费/本地方案**：本地部署的 HuggingFace / Ollama 模型完全没有 API 调用计费。
+- **并发限速**：使用第三方商业 API 时，过低的并发 QPS 可能会导致大规模批量建索变得漫长。Meilisearch 会自动处理 429 报错重试，但在生产环境建议申请更高档位的调用配额。
 
-### Cost and rate limits
+### 2. 向量维度大小 (Dimensions)
+- **384 维**：建索极快，占用内存极小，适合绝大多数常规场景。
+- **768 ~ 1024 维**：质量与性能的经典平衡点（如 BERT/BGE 常用规格）。
+- **1536 ~ 3072 维**：超高语义颗粒度，但内存消耗与索引体积较大，边际效益递减。
 
-Embedding providers charge per token or per request. For large datasets, embedding costs add up during indexing. Consider:
+### 3. 多语言与垂直领域特征
+如果你的业务以中文为主或包含多语种混杂，请务必选择对中文或多语言有官方评测背书的模型（如 Cohere Multilingual、BAAI/bge-m3、Jina 等），避免使用仅对英文优化的单一模型。
 
-- **Free tiers**: Cloudflare Workers AI and local HuggingFace models have no per-request cost
-- **Rate limits**: free-tier accounts on paid providers may slow down indexing significantly. Meilisearch handles retries automatically, but higher tiers index faster
-- **Re-indexing**: Meilisearch caches embeddings and only re-generates them when document content changes, reducing ongoing costs
+## 极限性能利器：复合嵌入器 (Composite Embedders)
 
-### Dimensions
+如果你既想要云端强大的批量建索吞吐，又想要单次用户搜索时绝对零网络延迟的极致响应，可以利用[复合嵌入器机制](/capabilities/hybrid_search/advanced/composite_embedders)：
+- **建索时**：使用云端 API（如 Cloudflare 或远程 GPU 推理端）高并发吞吐计算；
+- **用户检索时**：使用跑在 Meilisearch 本地容器内的 HuggingFace 轻量模型，直接在进程内存中秒级将用户输入转化为向量，省去外网 HTTP 往返耗时。
 
-Lower-dimension models are faster to index, use less memory, and produce faster searches. Higher dimensions can capture more semantic nuance but with diminishing returns.
-
-| Dimensions | Trade-off |
-|-----------|-----------|
-| 384 | Fast, low memory, good for most use cases |
-| 768-1024 | Balanced quality and performance |
-| 1536-3072 | Higher quality, slower, more memory |
-
-### Domain specialization
-
-Some providers offer models specialized for specific domains:
-
-- **Legal, medical, financial**: check if your provider has domain-specific models or fine-tuned variants
-- **Multilingual**: if your content is not in English, choose a model with explicit multilingual support (Cohere's multilingual models, Jina v3/v5, or multilingual BGE models)
-- **Code**: some models are optimized for code search
-
-### Indexing speed
-
-Embedding generation is the main bottleneck during indexing. Two factors affect speed:
-
-- **API latency**: cloud providers add network round-trip time per batch. Providers with edge networks (Cloudflare) or regional endpoints (Bedrock) can be faster
-- **Model size**: larger models take longer to compute embeddings, even on the provider side
-
-## Maximize performance with composite embedders
-
-If you need the best possible indexing speed and search latency, consider using a [composite embedder](/capabilities/hybrid_search/advanced/composite_embedders). This lets you use different models for indexing and search:
-
-- **Indexing**: use a cloud provider (Cloudflare Workers AI, HuggingFace Inference Endpoints, or any REST API) to generate high-quality embeddings at scale without impacting your Meilisearch server
-- **Search**: use a local HuggingFace model (like `BAAI/bge-small-en-v1.5`) running inside Meilisearch for near-instant query embedding with zero API latency
-
-This combination gives you the throughput of a cloud API for indexing with the speed of a local model for search. Both models must produce embeddings with the same number of dimensions.
-
-## User-provided embeddings
-
-If you work with non-textual content (images, audio) or already generate embeddings in your pipeline, you can supply pre-computed vectors directly. See [search with user-provided embeddings](/capabilities/hybrid_search/how_to/search_with_user_provided_embeddings).
-
-## Decision flowchart
+## 选型决策流程图
 
 ```mermaid
 flowchart TD
-    A[Starting out?] -->|Yes| B[Use OpenAI text-embedding-3-small<br/>or Voyage 4-lite]
-    A -->|No| C{Need maximum<br/>search speed?}
-    C -->|Yes| D[Composite embedder:<br/>cloud API for indexing +<br/>local HuggingFace for search]
-    C -->|No| E{Need specialized<br/>domain model?}
-    E -->|Yes| F[Check provider catalogs<br/>for domain-specific models]
-    E -->|No| G{Multilingual<br/>content?}
-    G -->|Yes| H[Cohere embed-v4.0,<br/>Jina v4, or BGE multilingual]
-    G -->|No| I[Pick the cheapest model<br/>that meets your needs]
+    A[刚开始起步试水？] -->|是| B[首选 OpenAI text-embedding-3-small<br/>或本地 Ollama bge-small]
+    A -->|否| C{需要追求极限<br/>搜索低延迟？}
+    C -->|是| D[复合嵌入器方案：<br/>云端 API 批量建索 +<br/>本地轻量模型处理用户实时搜索]
+    C -->|否| E{需要专业垂直领域<br/>或特定多模态？}
+    E -->|是| F[选择 Jina、TwelveLabs 或专业微调模型]
+    E -->|否| G{包含中英等多语言<br/>混合内容？}
+    G -->|是| H[选择 Cohere Multilingual<br/>或 BAAI/bge-m3]
+    G -->|否| I[直接选性价比最高、单价最便宜的轻量模型]
 ```

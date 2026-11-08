@@ -1,127 +1,100 @@
 ---
-title: Semantic vs hybrid search
-description: When to use pure semantic search vs hybrid search, and how to tune the balance between keyword and vector results.
+title: 纯语义搜索 vs 混合搜索 (Semantic vs hybrid search)
+sidebarTitle: 语义与混合对比
+description: 深入解析何时使用纯语义搜索与混合搜索，以及如何调优关键词与向量权重的平衡点。
 ---
 
-Meilisearch supports three search modes controlled by the [`semanticRatio`](/capabilities/hybrid_search/advanced/custom_hybrid_ranking) parameter: pure keyword search, pure semantic search, and hybrid search. Each mode has strengths and weaknesses depending on your data and how your users search.
+Meilisearch 通过 [`semanticRatio` 参数](/capabilities/hybrid_search/advanced/custom_hybrid_ranking) 提供了三种不同的搜索模式：纯关键词搜索、纯语义搜索与混合搜索。每种模式在不同数据类型与用户习惯下各有优劣。
 
-This page helps you understand the tradeoffs and pick the right approach for your use case.
+本文帮助你权衡利弊，为你的业务挑选最适合的技术路线。
 
-## The three search modes
+## 三种搜索模式对比
 
-The `semanticRatio` parameter controls how Meilisearch blends keyword and semantic results:
+`semanticRatio` 参数用于精确控制 Meilisearch 如何调配关键词与向量权重的融合比例：
 
-| Mode | `semanticRatio` | How it works |
-|------|-----------------|-------------|
-| Pure keyword | `0.0` | Meilisearch uses only [full-text](/capabilities/full_text_search/overview) matching. Results must contain the query terms (or close variants). No embedder is queried. |
-| Hybrid | `0.0 < ratio < 1.0` | Meilisearch runs both keyword and semantic search, then merges the results. Lower values favor keyword matches, higher values favor semantic matches. |
-| Pure semantic | `1.0` | Meilisearch uses only vector similarity. Results are ranked by how close their embeddings are to the query embedding. |
+| 搜索模式 | `semanticRatio` 取值 | 工作机制 |
+| :--- | :--- | :--- |
+| **纯关键词搜索** | `0.0` | 仅使用[全文检索 (Full-text)](/capabilities/full_text_search/overview)。结果必须包含查询词（或相近错别字）。完全不调用向量模型。 |
+| **混合搜索 (Hybrid)** | `0.0 < ratio < 1.0` | 同时并发运行关键词与语义检索并融合结果。数值越小越偏向关键词，数值越大越偏向语义理解。 |
+| **纯语义搜索** | `1.0` | 仅依靠向量余弦相似度。结果严格根据文档向量与查询词向量在高维空间中的距离进行排序。 |
 
-## When to use each mode
+## 各模式适用场景决策
 
-### Pure keyword search (semanticRatio = 0)
+### 1. 纯关键词搜索 (`semanticRatio = 0`)
 
-Best when:
+**最适合以下场景**：
+- 用户搜索明确的产品型号、商品 SKU、订单号或唯一编号
+- 包含高度专业化固定术语的结构化数据集（如法律文书、医疗处方记录、代码库）
+- 需要高度可预测、确定性且易于解释的检索结果
+- 希望规避为查询词临时生成向量所带来的网络调用延迟
 
-- Users search for exact product names, SKUs, or identifiers
-- Your dataset contains structured data with specific terminology (legal documents, medical records)
-- You need deterministic, explainable results
-- You want to avoid the latency cost of generating query embeddings
-
-Example queries that work well with keyword search:
+**典型示例**：
 - `"iPhone 15 Pro Max 256GB"`
-- `"error code 0x80070005"`
-- `"Moby Dick Herman Melville"`
+- `"错误码 0x80070005"`
+- `"Python requests.exceptions.ConnectionError"`
 
-### Pure semantic search (semanticRatio = 1)
+### 2. 纯语义搜索 (`semanticRatio = 1`)
 
-Best when:
+**最适合以下场景**：
+- 用户习惯用长句自然语言描述诉求，而不是具体的固定词汇
+- 内容类型高度同质（全是商品详情描述、全是知识问答对 Q&A）
+- 存在严重的用词不一致痛点（如用户搜“电脑”，而数据库里只写了“笔记本”或“PC”）
+- 构建[智能体对话搜索 (Agentic search)](/capabilities/agentic_search/overview)或基于 RAG 的智能问答
 
-- Users describe what they need in natural language rather than using specific terms
-- Your content is homogeneous (all product descriptions, all articles, all Q&A pairs)
-- Vocabulary mismatch is common (users say "laptop" but documents say "notebook computer")
-- You are building [agentic search](/capabilities/agentic_search/overview) or Q&A features
+**典型示例**：
+- `"办公桌上用来给咖啡保温的小东西"`
+- `"厨房水龙头漏水怎么修"`
+- `"适合站立工作一整天穿的舒服鞋子"`
 
-Example queries that work well with semantic search:
-- `"something to keep my coffee warm at my desk"`
-- `"how do I fix a leaky kitchen faucet"`
-- `"comfortable shoes for standing all day"`
+### 3. 混合搜索 (`0 < semanticRatio < 1`)
 
-### Hybrid search (0 < semanticRatio < 1)
+**最适合以下场景**：
+- 用户的搜索习惯千差万别，常常将精准词汇与口语描述混合在一起
+- 数据集包含多元丰富的内容类型
+- 既想牢牢抓住精确命中的爆款，又不想漏掉含义相关的潜在推荐
+- 电商商城搜索、技术知识库搜索、多板块社区论坛检索
 
-Best when:
+**典型示例**：
+- `"无线人体工学键盘"`（关键词“无线” + 语义“人体工学舒适度”）
+- `"Python 异步数据库连接池"`（技术术语 + 概念功能）
+- `"50元以内的红色夏季连衣裙"`（属性参数 + 风格描述）
 
-- Your users mix specific terms with natural language descriptions
-- Your dataset contains diverse content types
-- You want to catch both exact matches and conceptually relevant results
-- You are building ecommerce search, documentation search, or knowledge bases
+## 核心权衡要素
 
-Example queries that benefit from hybrid search:
-- `"wireless ergonomic keyboard"` (keyword "wireless" + semantic "ergonomic")
-- `"python async database connection"` (technical terms + conceptual meaning)
-- `"red summer dress under $50"` (product attributes + style description)
+### 响应延迟 (Latency)
 
-## Tradeoffs
+| 模式 | 相对延迟表现 | 说明 |
+| :--- | :--- | :--- |
+| **纯关键词搜索** | **最快（通常 <10ms）** | 纯倒排索引扫描，无需调用任何向量计算 |
+| **纯语义搜索** | **中等（约 30~80ms）** | 需要在收到请求时实时调用嵌入模型将查询词转化为向量 |
+| **混合搜索** | **相对最耗时（约 40~90ms）** | 底层并发执行两路检索，随后执行融合打分算法 |
 
-### Relevancy
+延迟的差异主要取决于嵌入器的类型。云端 API（OpenAI, Cohere）会增加外网网络往返耗时；而本地部署的 Embedder（HuggingFace, Ollama）虽然免去了外网延迟，但会占用服务器本地的 CPU/GPU 算力。
 
-Hybrid search typically delivers the best overall relevancy for general-purpose applications. Pure keyword search excels for exact-match queries but misses conceptually similar results. Pure semantic search handles vocabulary mismatch well but may miss results that contain the exact query terms.
+### 词汇不匹配（同义词鸿沟）处理
 
-### Latency
+这正是语义搜索的最大价值所在。以厨具数据集为例：
 
-| Mode | Relative latency | Notes |
-|------|------------------|-------|
-| Pure keyword | Fastest | No embedding generation needed |
-| Pure semantic | Moderate | Requires generating a query embedding |
-| Hybrid | Slowest | Runs both keyword and semantic search, then merges results |
+| 用户查询词 | 纯关键词搜索召回情况 | 纯语义搜索召回情况 |
+| :--- | :--- | :--- |
+| `"锅铲"` | 仅返回包含“锅铲”的文档 | 返回锅铲、炒菜铲、牛排夹、料理木勺等相关工具 |
+| `"煎薄饼用的工具"` | 结果几乎为空（搜不到） | 精准推荐不粘锅平底锅、薄饼翻铲 |
+| `"苏泊尔 CFXB40FC833"` | 精准召回该唯一型号 | 可能会推测推荐其他类似电饭煲，失去唯一精准性 |
 
-The latency difference depends on your embedder. Cloud-based embedders (OpenAI, Cohere) add network overhead for query embedding generation. Local embedders (HuggingFace) avoid network calls but use server CPU.
+混合搜索完美平衡了以上矛盾：它既能精准命中 `苏泊尔 CFXB40FC833`，又能在用户搜口语“翻煎饼工具”时准确推送锅铲。
 
-### Vocabulary mismatch handling
+## 初始权重参数推荐指南
 
-This is where semantic search provides the most value. Consider a kitchenware dataset:
+| 具体业务场景 | 推荐 `semanticRatio` | 业务考量依据 |
+| :--- | :--- | :--- |
+| **电商商城商品搜索** | `0.5` 到 `0.7` | 用户既搜品牌型号，又搜风格痛点 |
+| **技术开发文档与知识库** | `0.5` 到 `0.8` | 自然语言问句与技术 API 兼备 |
+| **源码搜索 / 编程代码库** | `0.0` 到 `0.3` | 代码对变量名和符号精确匹配要求极高 |
+| **客服问答 / 工单系统** | `0.7` 到 `1.0` | 用户多使用口语长句描述故障 |
+| **工业零件号 / SKU 目录** | `0.0` 到 `0.3` | 精确编号不允许模糊语义替代 |
+| **社区论坛 / 动态博客** | `0.5` 到 `0.7` | 兼顾话题标签与长篇动态内容 |
 
-| Query | Keyword results | Semantic results |
-|-------|----------------|-----------------|
-| `"spatula"` | Documents containing "spatula" | Documents about spatulas, turners, flippers |
-| `"something to flip pancakes"` | Few or no results | Spatulas, turners, griddle tools |
-| `"KitchenAid KFE5T"` | Exact product match | May return similar products instead |
+## 何时**不应**使用混合搜索？
 
-Hybrid search balances these scenarios. It returns the exact "KitchenAid KFE5T" match from keyword search while also surfacing conceptually relevant "pancake flipper" results from semantic search.
-
-## Decision guide
-
-Use the following table to choose your starting `semanticRatio`:
-
-| Use case | Recommended ratio | Reasoning |
-|----------|------------------|-----------|
-| Ecommerce product search | `0.5` to `0.7` | Users mix product names with descriptive queries |
-| Documentation or knowledge base | `0.5` to `0.8` | Natural language questions benefit from semantic matching |
-| Code search | `0.0` to `0.3` | Exact token matching is critical for code |
-| Q&A or support tickets | `0.7` to `1.0` | Users describe problems in varied language |
-| Catalog with SKUs and part numbers | `0.0` to `0.3` | Exact identifiers must match precisely |
-| Blog or article search | `0.5` to `0.7` | Mix of topic searches and specific queries |
-
-These are starting points. Test with real queries from your users and adjust based on the results you observe.
-
-## When NOT to use hybrid search
-
-Hybrid search is not always the best choice. Consider pure semantic search (`semanticRatio: 1.0`) instead when:
-
-- **Image-only search**: if your data is purely visual (image catalogs with no text metadata), keyword search has nothing to match against. Use pure semantic search with [multimodal embeddings](/capabilities/hybrid_search/how_to/image_search_with_multimodal).
-- **Similarity-based use cases**: if you are building a recommendation system using the [`/similar` endpoint](/capabilities/personalization/getting_started/recommendations), you are already using pure vector similarity. Hybrid search does not apply.
-- **Pre-computed embeddings without text**: if you provide your own embeddings for non-textual content (audio, sensor data), there are no keywords to match.
-
-## Next steps
-
-<CardGroup cols={2}>
-  <Card title="Custom hybrid ranking" href="/capabilities/hybrid_search/advanced/custom_hybrid_ranking">
-    Fine-tune semanticRatio and test different configurations
-  </Card>
-  <Card title="Full-text search" href="/capabilities/full_text_search/overview">
-    Learn more about Meilisearch's keyword search capabilities
-  </Card>
-  <Card title="Hybrid search overview" href="/capabilities/hybrid_search/overview">
-    Overview of hybrid and semantic search in Meilisearch
-  </Card>
-</CardGroup>
+- **纯图片视觉搜索**：如果数据只有图片没有文字元数据，关键词搜索无从下手，应直接使用基于多模态的纯语义检索。
+- **纯粹的“相似推荐”场景**：使用 [`/similar` 接口](/capabilities/personalization/getting_started/recommendations) 寻找关联文档时，底层已是纯向量余弦计算，无需混合检索。
