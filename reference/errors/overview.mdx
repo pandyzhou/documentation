@@ -1,35 +1,35 @@
 ---
-title: Errors
-sidebarTitle: Overview
-description: Consult this page for an overview of how Meilisearch reports and formats error objects.
+title: 错误响应与排查概览 (Errors)
+sidebarTitle: 错误概览
+description: 了解 Meilisearch 如何报告和格式化错误对象，以及常用的 HTTP 状态码说明。
 ---
 
-Meilisearch uses the following standard HTTP codes for a successful or failed API request:
+Meilisearch 在请求成功或失败时遵循标准 HTTP 状态码规范：
 
-| Status code | Description                                                                                |
-| :---------- | :----------------------------------------------------------------------------------------- |
-| 200         | ✅ **Ok** Everything worked as expected.                                                   |
-| 201         | ✅ **Created** The resource has been created (synchronous)                                 |
-| 202         | ✅  **Accepted** The task has been added to the queue (asynchronous)                       |
-| 204         | ✅ **No Content** The resource has been deleted or no content has been returned            |
-| 205         | ✅ **Reset Content** All the resources have been deleted                                   |
-| 400         | ❌ **Bad Request** The request was unacceptable, often due to missing a required parameter |
-| 401         | ❌ **Unauthorized** No valid API key provided                                              |
-| 403         | ❌ **Forbidden** The API key doesn't have the permissions to perform the request           |
-| 404         | ❌ **Not Found** The requested resource doesn't exist                                      |
+| HTTP 状态码 | 英文标识 | 含义说明 |
+| :--- | :--- | :--- |
+| **200** | ✅ **OK** | 请求成功执行并返回预期数据 |
+| **201** | ✅ **Created** | 同步资源已成功创建 |
+| **202** | ✅ **Accepted** | 异步任务已成功进入队列排队（写操作常见返回） |
+| **204** | ✅ **No Content** | 资源已被删除，或无需返回内容 |
+| **205** | ✅ **Reset Content** | 资源已被清空重置 |
+| **400** | ❌ **Bad Request** | 客户端请求参数不合法（如缺少必填字段或格式错误） |
+| **401** | ❌ **Unauthorized** | 未提供有效的 API Key 鉴权凭据 |
+| **403** | ❌ **Forbidden** | 当前 API Key 权限不足，无法执行该敏感操作 |
+| **404** | ❌ **Not Found** | 请求的目标资源（如指定的 index 索引）不存在 |
 
-## Errors
+## 错误类型 (Error Types)
 
-All detailed task responses contain an [`error`](/reference/api/tasks/get-task) field. When a task fails, it is always accompanied by a JSON-formatted error response. Meilisearch errors can be of one of the following types:
+所有失败的异步任务详情与同步报错请求，均会附带标准 JSON 格式的错误对象。错误主要归为以下四类：
 
-| Type                  | Description                                                                                                                                                                                     |
-| :-------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **`invalid_request`** | This is due to an error in the user input. It is accompanied by the HTTP code `4xx`                                                                                                             |
-| **`internal`**        | This is due to machine or configuration constraints. It is accompanied by the HTTP code `5xx`                                                                                                   |
-| **`auth`**            | This type of error is related to authentication and authorization. It is accompanied by the HTTP code `4xx`                                                                                     |
-| **`system`**          | This indicates your system has reached or exceeded its limit for disk size, index size, open files, or the database doesn't have read or write access. It is accompanied by the HTTP code `5xx` |
+| 错误分类 (Type) | 核心特征说明 | 对应状态码 |
+| :--- | :--- | :--- |
+| **`invalid_request`** | 客户端输入参数错误、格式不合规或请求体损坏 | `4xx` |
+| **`auth`** | 鉴权失败、API Key 缺失、过期或越权操作 | `4xx` |
+| **`system`** | 底层系统资源耗尽：磁盘空间满、达到最大打开文件句柄上限或无读写权限 | `5xx` |
+| **`internal`** | 引擎内部未捕获的严重故障或配置环境冲突 | `5xx` |
 
-### Error format
+### 错误响应格式
 
 ```json
 {
@@ -40,29 +40,11 @@ All detailed task responses contain an [`error`](/reference/api/tasks/get-task) 
 }
 ```
 
-| Field         | Description                                       |
-| :------------ | :------------------------------------------------ |
-| **`message`** | Human-readable description of the error           |
-| **`code`**    | [Error code](/reference/errors/error_codes)    |
-| **`type`**    | [Type](#errors) of error returned                 |
-| **`link`**    | Link to the relevant section of the documentation |
+| 返回字段 | 数据类型 | 字段说明 |
+| :--- | :--- | :--- |
+| **`message`** | String | 适合人类可读的具体错误原因描述 |
+| **`code`** | String | 固定的机器友好型[标准错误代码](/reference/errors/error_codes) |
+| **`type`** | String | 错误所属的大分类（`invalid_request`、`auth`、`system`、`internal`） |
+| **`link`** | String | 指向官方文档中该错误专项排查指南的快捷跳转链接 |
 
-If you're having trouble understanding an error, take a look at the [complete list](/reference/errors/error_codes) of `code` values and descriptions.
-
-TEST RESPONSE FIELD COMPONENT
-
-<ResponseField name="message" type="string">
-  Human-readable description of the error
-</ResponseField>
-
-<ResponseField name="code" type="string">
-  [Error code](/reference/errors/error_codes)
-</ResponseField>
-
-<ResponseField name="type" type="string">
-  [Type](#errors) of error returned
-</ResponseField>
-
-<ResponseField name="link" type="string">
-  Link to the relevant section of the documentation
-</ResponseField>
+如果你需要查询具体的错误代码释义，请翻阅[完整错误码速查表](/reference/errors/error_codes)。

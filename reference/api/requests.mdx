@@ -1,36 +1,29 @@
 ---
-title: Requests
-sidebarTitle: Requests
-description: Parameters, requests & response bodies, and data types for the Meilisearch API.
+title: HTTP 请求通用规范 (Requests)
+sidebarTitle: 请求规范
+description: Meilisearch API 的请求参数分类、请求与响应体格式以及异步 Task 响应机制。
 ---
 
-## Parameters
+## 参数分类 (Parameters)
 
-Parameters are options you can pass to an API endpoint to modify its response. There are three main types of parameters in Meilisearch's API: request body parameters, path parameters, and query parameters.
+参数用于向端点传递控制指令，调整接口行为与响应。Meilisearch REST API 中主要包含三大类参数：
 
-### Request body parameters
+### 1. 请求体参数 (Request body parameters)
+通过 POST、PUT 和 PATCH 请求的 Body 数据中发送。根据具体修改的资源类型，支持对象、数组、字符串或布尔值等丰富的 JSON 结构。
 
-These parameters are mandatory parts of POST, PUT, and PATCH requests. They accept a wide variety of values and data types depending on the resource you're modifying. You must add these parameters to your request's data payload.
+### 2. 路径参数 (Path parameters)
+嵌入在 URL 路径本身之中的参数，用于唯一定位某个具体的资源。例如在 `/indexes/{index_uid}/documents/{document_id}` 中，`index_uid` 和 `document_id` 就是路径参数。
 
-### Path parameters
+### 3. 查询字符串参数 (Query parameters)
+出现在 URL 问号（`?`）之后的键值对，多个参数之间用 `&` 连接，常见于 GET 检索和列表接口（如 `?limit=10&offset=20`）。参数的排列先后顺序不影响解析。
 
-These are parameters you pass to the API in the endpoint's path. They are used to identify a resource uniquely. You can have multiple path parameters, for example, `/indexes/{index_uid}/documents/{document_id}`.
+## 请求体格式 (Request Body)
 
-If an endpoint does not take any path parameters, this section is not present in that endpoint's documentation.
+客户端向服务端提交的请求体数据必须为标准合法的 JSON 格式（批量导入文档时可额外支持 NDJSON 和 CSV）。
 
-### Query parameters
+## 异步响应机制 (Asynchronous Response)
 
-These optional parameters are a sequence of key-value pairs and appear after the question mark (`?`) in the endpoint. You can list multiple query parameters by separating them with an ampersand (`&`). The order of query parameters does not matter. They are mostly used with GET endpoints.
-
-If an endpoint does not take any query parameters, this section is not present in that endpoint's documentation.
-
-## Request body
-
-The request body is data sent to the API. It is used with PUT, POST, and PATCH methods to create or update a resource. You must provide request bodies in JSON.
-
-## Response body
-
-Meilisearch is an **asynchronous API**. This means that in response to most write requests, you will receive a summarized version of the `task` object:
+Meilisearch 的写操作（写文档、删数据、改配置、建索引等）采用**完全异步化设计**。这意味着在发送写请求后，服务端不会阻塞等待建索完毕，而是立即返回一个轻量级的 `task` 任务对象，代表该操作已经进入底层任务队列排队：
 
 ```json
 {
@@ -38,14 +31,10 @@ Meilisearch is an **asynchronous API**. This means that in response to most writ
     "indexUid": "movies",
     "status": "enqueued",
     "type": "indexUpdate",
-    "enqueuedAt": "2021-08-11T09:25:53.000000Z"
+    "enqueuedAt": "2026-11-08T09:25:53.000000Z"
 }
 ```
 
-You can use this `taskUid` to get more details on [the status of the task](/reference/api/async-task-management/get-task).
+客户端拿到 `taskUid` 后，可以调用[任务详情接口](/reference/api/tasks/get-task)轮询其实际执行进度。
 
-See more information about [asynchronous operations](/capabilities/indexing/tasks_and_batches/async_operations).
-
-## Data types
-
-The Meilisearch API supports [JSON data types](https://www.w3schools.com/js/js_json_datatypes.asp).
+[深入了解异步操作与任务状态机 →](/capabilities/indexing/tasks_and_batches/async_operations)

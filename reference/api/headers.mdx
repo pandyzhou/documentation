@@ -1,52 +1,55 @@
 ---
-title: Headers
-sidebarTitle: Headers
-description: Content-Type, Content-Encoding, Accept-Encoding, and Meili-Include-Metadata headers for the Meilisearch API.
+title: HTTP 请求头规范 (Headers)
+sidebarTitle: 请求头规范
+description: Meilisearch API 支持的 Content-Type、Content-Encoding、Accept-Encoding 以及 Meili-Include-Metadata 请求头说明。
 ---
 
-## Content type
+## 媒体类型 (Content-Type)
 
-Any API request with a payload (`--data-binary`) requires a `Content-Type` header. Content type headers indicate the media type of the resource, helping the client process the response body correctly.
+任何携带请求体数据（`--data-binary`）的 API 请求都必须包含 `Content-Type` 请求头，以便服务端能准确解析其格式。
 
-Meilisearch currently supports the following formats:
+Meilisearch 目前支持以下数据格式：
 
-- `Content-Type: application/json` for JSON
-- `Content-Type: application/x-ndjson` for NDJSON
-- `Content-Type: text/csv` for CSV
+- `Content-Type: application/json`：标准 JSON 格式
+- `Content-Type: application/x-ndjson`：换行分隔的 JSON 格式（NDJSON）
+- `Content-Type: text/csv`：逗号分隔的 CSV 格式
 
-Only the [add documents](/reference/api/documents/add-or-replace-documents) and [update documents](/reference/api/documents/add-or-update-documents) endpoints accept NDJSON and CSV. For all others, use `Content-Type: application/json`.
+只有[批量添加文档](/reference/api/documents/add-or-replace-documents)与[更新文档](/reference/api/documents/add-or-update-documents)端点支持接收 NDJSON 和 CSV。对于所有其他配置和控制接口，请统一使用 `Content-Type: application/json`。
 
-## Content encoding
+## 内容压缩编码 (Content-Encoding)
 
-The `Content-Encoding` header indicates the media type is compressed by a given algorithm. Compression improves transfer speed and reduces bandwidth consumption by sending and receiving smaller payloads. The `Accept-Encoding` header, instead, indicates the compression algorithm the client understands.
+`Content-Encoding` 请求头用于声明客户端发送的数据已经通过特定算法压缩。启用压缩能够显著减少网络带宽占用并成倍缩短传输耗时。而 `Accept-Encoding` 请求头则告知服务端客户端能够解压哪些算法。
 
-Meilisearch supports the following compression methods:
+Meilisearch 完整支持以下三种主流压缩算法：
 
-- `br`: uses the [Brotli](https://en.wikipedia.org/wiki/Brotli) algorithm
-- `deflate`: uses the [zlib](https://en.wikipedia.org/wiki/Zlib) structure with the [deflate](https://en.wikipedia.org/wiki/DEFLATE) compression algorithm
-- `gzip`: uses the [gzip](https://en.wikipedia.org/wiki/Gzip) algorithm
+- `br`：基于 [Brotli](https://en.wikipedia.org/wiki/Brotli) 算法（压缩率最高）
+- `deflate`：基于 [zlib / deflate](https://en.wikipedia.org/wiki/DEFLATE) 算法
+- `gzip`：基于通用的 [gzip](https://en.wikipedia.org/wiki/Gzip) 算法
 
-### Request compression
+### 请求体压缩发送示例
 
-The code sample below uses the `Content-Encoding: gzip` header, indicating that the request body is compressed using the `gzip` algorithm:
+以下命令在发送大量文档前，直接通过管道将其用 gzip 压缩后再流式上传：
 
+```bash
+cat ~/movies.json | gzip | curl -X POST 'MEILISEARCH_URL/indexes/movies/documents' \
+  --data-binary @- \
+  -H 'Content-Type: application/json' \
+  -H 'Content-Encoding: gzip'
 ```
- cat ~/movies.json | gzip | curl -X POST 'MEILISEARCH_URL/indexes/movies/documents' --data-binary @- -H 'Content-Type: application/json' -H 'Content-Encoding: gzip'
-```
 
-### Response compression
+### 响应体压缩接收示例
 
-Meilisearch compresses a response if the request contains the `Accept-Encoding` header. The code sample below uses the `gzip` algorithm:
+携带 `Accept-Encoding: gzip` 请求头即可通知 Meilisearch 对返回的 JSON 进行压缩：
 
-```
+```bash
 curl -sH 'Accept-encoding: gzip' 'MEILISEARCH_URL/indexes/movies/search' | gzip -dc
 ```
 
-## Search metadata
+## 检索元数据响应头 (Meili-Include-Metadata)
 
-You may use an optional `Meili-Include-Metadata` header when performing search and multi-search requests:
+在发起单次搜索或多索引搜索时，你可以附带可选的 `Meili-Include-Metadata: true` 请求头：
 
-```
+```bash
 curl -X POST 'http://localhost:7700/indexes/INDEX_NAME/search' \
   -H 'Content-Type: application/json' \
   -H 'Authorization: Bearer MEILISEARCH_KEY' \
@@ -54,9 +57,7 @@ curl -X POST 'http://localhost:7700/indexes/INDEX_NAME/search' \
   -d '{"q": ""}'
 ```
 
-Meilisearch Cloud includes this header by default.
-
-Responses will include a `metadata` object:
+响应体中将包含一个 `metadata` 元数据追踪对象：
 
 ```json
 {
@@ -69,17 +70,9 @@ Responses will include a `metadata` object:
 }
 ```
 
-`metadata` contains the following fields:
-
-|    Field     |   Type  |                        Description                         |
-|:------------:|:-------:|:----------------------------------------------------------:|
-| `queryUid`   | UUID v7 | Unique identifier for the query                            |
-| `indexUid`   | String  | Index identifier                                           |
-| `primaryKey` | String  | Primary key field name, if index has a primary key         |
-| `remote`     | String  | Remote instance name, if request targets a remote instance |
-
-<Note>
-A search refers to a single HTTP search request. Every search request is assigned a `requestUid`. A query UID is a combination of `q` and `indexUid`.
-
-In the context of multi-search, for any given `searchUid` there may be multiple `queryUid` values.
-</Note>
+| 元数据字段 | 类型 | 功能说明 |
+| :--- | :--- | :--- |
+| `queryUid` | UUID v7 | 单次查询的全局唯一跟踪标识符 |
+| `indexUid` | String | 目标索引标识名 |
+| `primaryKey` | String | 该索引当前生效的主键字段名 |
+| `remote` | String | 如果请求打到了远程节点，返回对应的远程节点名 |

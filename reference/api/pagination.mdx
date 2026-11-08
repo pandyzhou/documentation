@@ -1,19 +1,21 @@
 ---
-title: Pagination
-sidebarTitle: Pagination
-description: How Meilisearch paginates GET routes and the structure of paginated responses.
+title: API 分页机制 (Pagination)
+sidebarTitle: 分页机制
+description: Meilisearch GET 列表端点的分页规范与分页响应结构体定义。
 ---
 
-Meilisearch paginates all GET routes that return multiple resources, for example, GET `/indexes`, GET `/documents`, GET `/keys`, etc. This allows you to work with manageable chunks of data. All these routes return 20 results per page, but you can configure it using the `limit` query parameter. You can move between pages using `offset`.
+Meilisearch 对所有返回多个实体资源的 GET 接口都默认启用了分页处理（例如 `GET /indexes`、`GET /documents`、`GET /keys` 等），以保障海量数据下的性能稳定。
 
-All paginated responses contain the following fields:
+默认情况下，这些接口每页返回 **20 条**数据。你可以通过 `limit` 查询参数自定义返回条数，并通过 `offset` 参数进行偏移翻页。
 
-| Name         | Type    | Description                  |
-| :----------- | :------ | :--------------------------- |
-| **`offset`** | Integer | Number of resources skipped  |
-| **`limit`**  | Integer | Number of resources returned |
-| **`total`**  | Integer | Total number of resources    |
+所有分页列表响应均包含以下通用字段：
 
-## `/tasks` endpoint
+| 字段名称 | 数据类型 | 描述说明 |
+| :--- | :--- | :--- |
+| **`offset`** | Integer | 本次请求跳过的记录数量（偏移量） |
+| **`limit`** | Integer | 本次请求实际拉取的最大记录数量 |
+| **`total`** | Integer | 满足条件的总记录条数 |
 
-Since the `/tasks` endpoint uses a different type of pagination, the response contains different fields. You can read more about it in the [tasks API reference](/reference/api/tasks/list-tasks).
+## `/tasks` 任务端点的特殊游标分页
+
+由于后台任务队列（`/tasks`）的数据是实时不断追加并动态流动的，因此它采用的是基于 ID 的**游标分页（Keyset Pagination）**，而非传统的 offset 偏移分页。具体参数请参阅[任务接口参考手册](/reference/api/tasks/list-tasks)。

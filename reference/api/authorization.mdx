@@ -1,19 +1,19 @@
 ---
-title: Authorization
-sidebarTitle: Authorization
-description: How to authenticate with the Meilisearch API using API keys and the Authorization header.
+title: API 认证与授权 (Authorization)
+sidebarTitle: 接口鉴权
+description: 如何使用 API 密钥与 Authorization 请求头对 Meilisearch REST API 发起安全认证。
 ---
 
 import CodeSamplesAuthorizationHeader1 from '/snippets/generated-code-samples/code_samples_authorization_header_1.mdx';
 
 <Tip>
-If you are new to Meilisearch, check out the [getting started guide](/resources/self_hosting/getting_started/quick_start).
+如果你刚刚接触 Meilisearch，请先参阅[自托管快速上手指南](/resources/self_hosting/getting_started/quick_start)。
 </Tip>
 
-By [providing Meilisearch with a master key at launch](/resources/self_hosting/security/basic_security), you protect your instance from unauthorized requests. The provided master key must be at least 16 bytes. From then on, you must include the `Authorization` header along with a valid API key to access protected routes (all routes except [`/health`](/reference/api/health)).
+通过在[启动时配置 Master Key 主密钥](/resources/self_hosting/security/basic_security)，你可以彻底保护 Meilisearch 实例免受未授权访问。主密钥长度必须**至少为 16 字节**。从设置密钥起，除健康检查路由（[`/health`](/reference/api/health)）外，访问所有受保护的 API 端点都必须在 HTTP 请求头中附带 `Authorization: Bearer <API_KEY>`。
 
 <CodeSamplesAuthorizationHeader1 />
 
-The [`/keys`](/reference/api/keys) route can only be accessed using the master key. For security reasons, we recommend using regular API keys for all other routes.
+[`/keys`](/reference/api/keys) 密钥管理路由**只能使用 Master Key 进行访问**。出于安全最佳实践，对于其他业务路由，强烈建议使用派生出的普通 API 密钥（如专用搜索 Key）。
 
-[To learn more about keys and security, refer to our security tutorial.](/resources/self_hosting/security/basic_security)
+[深入了解密钥分级与安全配置，请参阅安全指南 →](/resources/self_hosting/security/basic_security)
